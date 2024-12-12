@@ -1,0 +1,32 @@
+{
+  "name": "second-project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@hapi/hapi": "^21.3.12",
+    "@hapi/inert": "^7.1.0",
+    "@hapi/joi": "^17.1.1",
+    "@hapi/vision": "^7.0.3",
+    "@prisma/client": "^6.0.1",
+    "@types/jsonwebtoken": "^9.0.7",
+    "basic-auth": "^2.0.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.7",
+    "hapi-geo-locate": "^4.1.1",
+    "hapi-swagger": "^17.3.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.7",
+    "prisma": "^6.0.1"
+  },
+  "devDependencies": {
+    "@types/basic-auth": "^1.1.8",
+    "@types/node": "^22.10.1"
+  }
+}
