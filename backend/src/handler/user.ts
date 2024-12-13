@@ -6,6 +6,7 @@ const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const ACCESS_TOKEN_EXPIRATION = process.env.ACCESS_TOKEN_EXPIRATION;
 const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION;
+// const REFRESH_TOKEN_EXPIRATION = "3d";
 
 const PORT = process.env.PORT || 3000;
 
@@ -132,6 +133,31 @@ const userLoginHandler = async (req: any, h: any) => {
     }
 }
 
+
+const tokenValidHandler = async (req: any, h: any) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader || !authHeader.startsWith("Bearer ")) {
+            return h.response({
+                message: "Missing or invalid Authorization header",
+            }).code(400);
+        }    
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, JWT_REFRESH_SECRET); // Ensures expiration is checked
+        console.log(decoded);
+        return h.response({
+            data:decoded
+        });
+    } catch (error) {
+        return h.response({
+            message: "Invalid token",
+        }).code(401);
+    }
+    
+};
+
+
+
 const userSignupHandler = async (req: any, h: any) => {
     const { firstName, lastName, email, password } = req.payload;
     try {
@@ -179,7 +205,8 @@ const userSignupHandler = async (req: any, h: any) => {
                 id: newUser.id
             },
             data: {
-                refreshToken: refreshToken
+                refreshToken: refreshToken,
+                accessToken: accessToken
             }
         });
 
@@ -193,7 +220,7 @@ const userSignupHandler = async (req: any, h: any) => {
                 firstName: newUser.firstName,
                 secondName: newUser.secondName,
                 email: newUser.email,
-                refreshToken: newUser.refreshToken,
+                refreshToken: refreshToken,
                 accessToken: accessToken
             }
         }).code(201);
@@ -249,7 +276,7 @@ const userDeleteHandler = async (req: any, h: any) => {
 
 
 
-const fetchAllUsersHandler = async(req:any, h:any) => { 
+const fetchAllUsersHandler = async (req: any, h: any) => {
     try {
         const allUsers = await Prisma.user.findMany();
 
@@ -280,4 +307,5 @@ export {
     userDeleteHandler,
     fetchAllUsersHandler,
     userForgotPasswordHandler,
+    tokenValidHandler
 };

@@ -11,6 +11,10 @@ export const headerValidators = {
     userLogin: Joi.object({
         authorization: stringRequired,
     }).options({ allowUnknown: true }),
+
+    userValid: Joi.object({
+        authorization: stringRequired,
+    }).options({ allowUnknown: true }),
 };
 
 // Payload Validators

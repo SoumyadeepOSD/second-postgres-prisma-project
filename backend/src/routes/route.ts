@@ -1,6 +1,7 @@
 export const authRoutes = {
     SIGNUP:"/signup",
     LOGIN:"/login",
+    VALIDITY:"/valid",
     FORGOTPASSWORD: "/forgot-password",
     DELETEUSER:"/delete",
     VIEWUSER:"/view"

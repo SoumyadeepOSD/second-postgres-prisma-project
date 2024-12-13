@@ -1,9 +1,8 @@
-const { PrismaClient } = require("@prisma/client");
 import { authRoutes, todoRoutes } from "./src/routes/route";
 import { httpMethods } from "./src/methods";
 import { todoParamsValidators, todoPayloadValidators } from "./src/validations/todo";
 import { headerValidators, userPayloadValidators } from "./src/validations/user";
-import { fetchAllUsersHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userSignupHandler } from "./src/handler/user";
+import { fetchAllUsersHandler, tokenValidHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userSignupHandler } from "./src/handler/user";
 import { todoCreateHandler, todoDeleteHandler, todoFetchAllHandler, todoReadHandler, todoUpdateHandler } from "./src/handler/todo";
 const HapiSwagger = require("hapi-swagger");
 const basicAuth = require("basic-auth");
@@ -53,6 +52,19 @@ const init = async () => {
             options: swaggerOptions
         }
     ]);
+
+
+    server.route({
+        method: httpMethods.POST,
+        path: authRoutes.VALIDITY,
+        options: {
+            tags: ["api", "users"],
+            validate: {
+                headers: headerValidators.userValid
+            },
+            handler: tokenValidHandler
+        }
+    }),
 
 
 
