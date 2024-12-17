@@ -33,3 +33,9 @@ export const userPayloadValidators = {
         id: idValidator,
     }),
 };
+
+export const userParamValidators = {
+    userValid: Joi.object({
+        tokenType: stringRequired
+    })
+}

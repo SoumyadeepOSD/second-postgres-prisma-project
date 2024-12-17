@@ -1,7 +1,7 @@
 export const authRoutes = {
     SIGNUP:"/signup",
     LOGIN:"/login",
-    VALIDITY:"/valid",
+    VALIDITY:"/valid/{tokenType}",
     FORGOTPASSWORD: "/forgot-password",
     DELETEUSER:"/delete",
     VIEWUSER:"/view"
@@ -9,7 +9,7 @@ export const authRoutes = {
 
 export const todoRoutes = {
     CREATE:"/create_todo",
-    VIEWTODO:"/view_todo/{userId}",
+    VIEWTODO:"/view_todo",
     UPDATETODO: "/update_todo/{todoId}",
     DELETETODO:"/delete_todo/{todoId}",
     VIEW_ALL: "/fetch_all_todos/{userId}"

@@ -1,9 +1,11 @@
 import { authRoutes, todoRoutes } from "./src/routes/route";
 import { httpMethods } from "./src/methods";
-import { todoParamsValidators, todoPayloadValidators } from "./src/validations/todo";
-import { headerValidators, userPayloadValidators } from "./src/validations/user";
+import { todoHeaderValidators, todoParamsValidators, todoPayloadValidators } from "./src/validations/todo";
+import { headerValidators, userParamValidators, userPayloadValidators } from "./src/validations/user";
 import { fetchAllUsersHandler, tokenValidHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userSignupHandler } from "./src/handler/user";
 import { todoCreateHandler, todoDeleteHandler, todoFetchAllHandler, todoReadHandler, todoUpdateHandler } from "./src/handler/todo";
+import authMiddleware from "./src/middleware/auth-middleware";
+
 const HapiSwagger = require("hapi-swagger");
 const basicAuth = require("basic-auth");
 const Vision = require("@hapi/vision");
@@ -12,11 +14,9 @@ const Hapi = require("@hapi/hapi");
 const Joi = require("joi");
 require("dotenv").config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT;
 
 const init = async () => {
-
-
     const server = Hapi.server({
         port: PORT,
         host: "localhost",
@@ -60,7 +60,8 @@ const init = async () => {
         options: {
             tags: ["api", "users"],
             validate: {
-                headers: headerValidators.userValid
+                headers: headerValidators.userValid,
+                params: userParamValidators.userValid
             },
             handler: tokenValidHandler
         }
@@ -152,8 +153,10 @@ const init = async () => {
         path: todoRoutes.CREATE,
         options: {
             tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
             validate: {
-                payload: todoPayloadValidators.todoCreate
+                headers: todoHeaderValidators.userValid,
+                payload: todoPayloadValidators.todoCreate,
             },
             handler: todoCreateHandler
         }
@@ -167,8 +170,9 @@ const init = async () => {
         path: todoRoutes.VIEWTODO,
         options: {
             tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
             validate: {
-                params: todoParamsValidators.allTodosFetch
+                headers: todoHeaderValidators.userValid,
             },
             handler: todoReadHandler
         }
@@ -182,6 +186,7 @@ const init = async () => {
         options: {
             tags: ["api", "todos"],
             validate: {
+                headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoUpdate,
                 payload: todoPayloadValidators.todoUpdate,
             },
@@ -196,7 +201,9 @@ const init = async () => {
         path: todoRoutes.DELETETODO,
         options: {
             tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
             validate: {
+                headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoDelete,
             },
             handler: todoDeleteHandler

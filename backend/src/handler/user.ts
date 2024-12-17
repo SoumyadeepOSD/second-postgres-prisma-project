@@ -4,11 +4,9 @@ const Prisma = new PrismaClient();
 const bcryptJS = require("bcryptjs");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const ACCESS_TOKEN_EXPIRATION = process.env.ACCESS_TOKEN_EXPIRATION;
-const REFRESH_TOKEN_EXPIRATION = process.env.REFRESH_TOKEN_EXPIRATION;
-// const REFRESH_TOKEN_EXPIRATION = "3d";
+const REFRESH_TOKEN_EXPIRATION = 3600;
+const ACCESS_TOKEN_EXPIRATION = 1800;
 
-const PORT = process.env.PORT || 3000;
 
 const userLoginHandler = async (req: any, h: any) => {
     const { email, password } = req.payload;
@@ -137,13 +135,14 @@ const userLoginHandler = async (req: any, h: any) => {
 const tokenValidHandler = async (req: any, h: any) => {
     try {
         const authHeader = req.headers.authorization;
+        const {tokenType} = req.params;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return h.response({
                 message: "Missing or invalid Authorization header",
             }).code(400);
         }    
         const token = authHeader.split(" ")[1];
-        const decoded = jwt.verify(token, JWT_REFRESH_SECRET); // Ensures expiration is checked
+        const decoded = jwt.verify(token, tokenType==="refresh" ? JWT_REFRESH_SECRET : JWT_SECRET); // Ensures expiration is checked
         console.log(decoded);
         return h.response({
             data:decoded

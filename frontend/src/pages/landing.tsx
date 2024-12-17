@@ -5,7 +5,7 @@ const Landing = () => {
     const router = useRouter();
     const handleStarted = () => router.replace("/login");
     return (
-        <div className="flex flex-col h-screen py-20">
+        <div className="flex flex-col h-screen py-20 px-20">
             <div className="flex flex-row items-center justify-between">
                 <div className="flex flex-col">
                     <div className="bg-gradient-to-br from-blue-500 to-pink-500 text-[50px] bg-clip-text text-transparent font-bold flex flex-col items-start">

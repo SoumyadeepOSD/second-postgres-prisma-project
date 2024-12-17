@@ -1,10 +1,10 @@
-const { PrismaClient } = require("@prisma/client");
+import { PrismaClient } from "@prisma/client";
 const Prisma = new PrismaClient();
 
 const todoCreateHandler = async (req: any, h: any) => {
     try {
-        const { title, description, status, userId } = req.payload;
-        // Check if a Todo with the same title exists for the given user
+        const { title, description, status } = req.payload;
+        const userId = req.auth.userId; 
         const existingTodo = await Prisma.todo.findFirst({
             where: {
                 title: {
@@ -47,16 +47,16 @@ const todoCreateHandler = async (req: any, h: any) => {
 
 
 const todoReadHandler = async (req: any, h: any) => {
-    const { userId } = req.params;
+    const userId = req.auth.userId; 
     try {
-        const allTodos = await Prisma.todo.findUnique({
+        const allTodos = await Prisma.todo.findMany({
             where: {
                 userId: userId
             }
         });
-        if (!allTodos) {
+        if (!allTodos || allTodos.length === 0) {
             return h.response({
-                "message": "No todos found"
+                message: "No todos found",
             }).code(200);
         }
         return {
@@ -76,36 +76,39 @@ const todoReadHandler = async (req: any, h: any) => {
 
 const todoUpdateHandler = async (req: any, h: any) => {
     const { todoId } = req.params;
+    const userId = req.auth.userId;
     const { title, description, status } = req.payload;
     try {
-        const existingTodo = await Prisma.todo.findUnique({
-            where: {
-                id: todoId
+        if(!userId){
+            const existingTodo = await Prisma.todo.findUnique({
+                where: {
+                    id: todoId
+                }
+            });
+            if (!existingTodo) {
+                return h.response({
+                    "message": "Todo Can't be updated, as it does not exist"
+                }).code(401);
             }
-        });
-        if (!existingTodo) {
-            return h.response({
-                "message": "Todo Can't be updated, as it does not exist"
-            }).code(401);
-        }
-        const updatedTodo = await Prisma.todo.update({
-            where: {
-                id: todoId
-            },
-            data: {
-                title: title,
-                description: description,
-                status: status || "incomplete",
+            const updatedTodo = await Prisma.todo.update({
+                where: {
+                    id: todoId
+                },
+                data: {
+                    title: title,
+                    description: description,
+                    status: status,
+                }
+            });
+            if (!updatedTodo) {
+                return h.response({
+                    "message": "Can't update todo"
+                }).code(404);
             }
-        });
-        if (!updatedTodo) {
             return h.response({
-                "message": "Can't update todo"
-            }).code(404);
-        }
-        return {
-            "message": "Successfully updated todo",
-            "todo": updatedTodo
+                message: "Successfully updated existing todo",
+                todo: updatedTodo
+            }).code(201); // Use 201 for resource creation
         }
     } catch (error: any) {
         console.error(error);
@@ -120,30 +123,33 @@ const todoUpdateHandler = async (req: any, h: any) => {
 
 const todoDeleteHandler = async (req: any, h: any) => {
     const { todoId } = req.params;
+    const userId = req.auth.userId;
     try {
-        const existingTodo = await Prisma.todo.findUnique({
-            where: {
-                id: todoId
+        if(userId){
+            const existingTodo = await Prisma.todo.findUnique({
+                where: {
+                    id: todoId
+                }
+            });
+            if (!existingTodo) {
+                return h.response({
+                    "message": "Todo can't deleted as it does not exist"
+                }).code(401);
             }
-        });
-        if (!existingTodo) {
-            return h.response({
-                "message": "Todo can't deleted as it does not exist"
-            }).code(401);
-        }
-        const deletedTodo = await Prisma.todo.delete({
-            where: {
-                id: todoId
+            const deletedTodo = await Prisma.todo.delete({
+                where: {
+                    id: todoId
+                }
+            });
+            if (!deletedTodo) {
+                return h.response({
+                    "message": "Can't delete todo"
+                }).code(404);
             }
-        });
-        if (!deletedTodo) {
             return h.response({
-                "message": "Can't delete todo"
-            }).code(404);
-        }
-        return {
-            "message": "Successfully deleted todo",
-            "todo": deletedTodo
+                message: "Successfully deleted new Todo",
+                todo: deletedTodo
+            }).code(201); // Use 201 for resource creation
         }
     } catch (error: any) {
         console.error(error);

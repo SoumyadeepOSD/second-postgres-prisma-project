@@ -8,6 +8,7 @@ import Login from "./pages/login";
 import Landing from "./pages/landing";
 import AuthContext from "./context/authContext";
 import AuthProvider from "./provider/authProvider";
+import Testing from "./pages/testing";
 
 function App() {
   const [accessToken, setAccessToken] = useState<string>("");
@@ -27,6 +28,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/testing" element={<Testing />} />
           <Route
             path="/home"
             element={

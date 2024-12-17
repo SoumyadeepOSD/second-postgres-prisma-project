@@ -30,6 +30,8 @@ const useAuth = ()=>{
                     description: response.data
                 });
                 setLoading(false);
+                window.localStorage.setItem("refresh_token", response.data.refreshToken!)
+                window.localStorage.setItem("access_token", response.data.accessToken!)
                 window.location.href="/home";
             }
             setLoading(false);
@@ -37,6 +39,7 @@ const useAuth = ()=>{
             console.log(response.data);
         } catch (error:unknown) {
             setLoading(false);
+            console.log(`=================Error is ${error}`);
             toast({
                 title:"Login Failed",
                 variant:"destructive",
@@ -68,6 +71,7 @@ const useAuth = ()=>{
                 //^Log the signup data
                 console.log(response.data); 
                 window.localStorage.setItem("access_token", response.data.user.accessToken!);
+                window.localStorage.setItem("user_name", firstName);
                 window.localStorage.setItem("refresh_token", response.data.user.refreshToken!);
                 window.location.href="/login";
             }
