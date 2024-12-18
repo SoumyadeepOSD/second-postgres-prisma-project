@@ -4,6 +4,8 @@ const Joi = require("joi");
 const idValidator = Joi.number().required();
 const stringRequired = Joi.string().required();
 const statusValidator = Joi.string().valid("incomplete", "progress", "complete").default("incomplete");
+const priorityValidator = Joi.number().valid(1, 2, 3, 4).default(4);
+const labelsValidator = Joi.array().items(Joi.number().integer()).optional();  // Validate array of label IDs
 
 // Payload Validators
 export const todoPayloadValidators = {
@@ -11,6 +13,10 @@ export const todoPayloadValidators = {
         title: stringRequired,
         description: stringRequired,
         status: statusValidator,
+        creationDateTime: stringRequired,
+        updationDateTime: stringRequired,
+        priority: priorityValidator,
+        labels: labelsValidator,  // Add labels field for many-to-many relationship
     }),
     todoView: Joi.object({
         userId: idValidator,
@@ -19,6 +25,8 @@ export const todoPayloadValidators = {
         title: stringRequired,
         description: stringRequired,
         status: statusValidator.required(),
+        updationDateTime: stringRequired,
+        labels: labelsValidator,  // Add labels field for updating labels in Todo
     }),
 };
 
@@ -27,7 +35,6 @@ export const todoHeaderValidators = {
         authorization: stringRequired,
     }).options({ allowUnknown: true }),
 };
-
 
 // Params Validators
 export const todoParamsValidators = {

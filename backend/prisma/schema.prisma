@@ -14,21 +14,34 @@ datasource db {
 }
 
 model User {
-  id           Int    @id @default(autoincrement())
+  id           Int     @id @default(autoincrement())
   first_name   String
   last_name    String
-  email        String @unique
+  email        String  @unique
   password     String
   accessToken  String
   refreshToken String
   todos        Todo[]
+  labels       Label[]
 }
 
 model Todo {
-  id          Int    @id @default(autoincrement())
-  title       String 
-  description String
-  status      String
-  userId      Int
-  user        User   @relation(fields: [userId], references: [id])
+  id               Int     @id @default(autoincrement())
+  title            String
+  description      String
+  status           String
+  creationDateTime String
+  updationDateTime String
+  priority         Int
+  userId           Int
+  user             User    @relation(fields: [userId], references: [id])
+  labels           Label[] @relation("TodoLabels")
+}
+
+model Label {
+  id     Int    @id @default(autoincrement())
+  name   String
+  userId Int
+  user   User   @relation(fields: [userId], references: [id])
+  todos  Todo[] @relation("TodoLabels")
 }

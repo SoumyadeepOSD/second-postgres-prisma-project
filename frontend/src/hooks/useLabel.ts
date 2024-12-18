@@ -1,54 +1,26 @@
-import { useState } from "react";
 import axios from "axios";
 import { toast } from "./use-toast";
-import { generateDateAndTimeToString } from "@/lib/helpers";
+import { useState } from "react";
 
 
 const BASE_URL = import.meta.env.VITE_BASE_URL!;
-const access_token = localStorage.getItem("access_token");   
-const currentDateAndTime = generateDateAndTimeToString();
+const access_token = localStorage.getItem("access_token");
 
-const useTodo = () => {
-    
+const useLabel = () => {
     const [loading, setLoading] = useState(false);
-
-    interface createTodoTypes {
-        title?: string;
-        description?: string;
-        labels?: number[];
-    };
-
-    interface editTodoTypes {
-        title?: string;
-        description?: string;
-        status?: string;
-        todoId?: number;
-        updationDateTime?: string;
-        labels?: string[];
-    };
-
-
-    
-
-    const createTodo = async ({ title, description, labels }: createTodoTypes) => {
+    const createLabel = async ({ name }: { name: string }) => {
         setLoading(true);
         try {
-            const URL = `${BASE_URL}/create_todo`;
+            const URL = `${BASE_URL}/create_label`;
             const payloadBody = {
-                title: title,
-                description: description,
-                status: "incomplete",
-                creationDateTime: currentDateAndTime,
-                updationDateTime: currentDateAndTime,
-                priority: 4,
-                labels: labels
+                name: name
             };
             const response = await axios.post(URL, payloadBody,
                 {
-                    headers: 
+                    headers:
                     {
-                        'Content-Type': 'application/json', 
-                        'Authorization': `Bearer ${access_token}`               
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${access_token}`
                     }
                 }
             );
@@ -61,24 +33,22 @@ const useTodo = () => {
                 });
                 setLoading(false);
             }
-            await fetchTodo();
             setLoading(false);
         } catch (error: unknown) {
             setLoading(false);
             toast({
                 title: "Failed!",
                 variant: "destructive",
-                description: `Can't create new todo! ${error}`
+                description: `Can't create new label! ${error}`
             });
         }
-    }
+    };
 
 
-
-    const fetchTodo = async () => {
+    const getLabel = async() => {
         setLoading(true);
         try {    
-            const response = await axios.get(`${BASE_URL}/view_todo`, {
+            const response = await axios.get(`${BASE_URL}/view_label`, {
                 headers: 
                 {
                     'Content-Type': 'application/json', 
@@ -88,14 +58,14 @@ const useTodo = () => {
             if (response.status === 201 || response.status === 200) {
                 console.log(response.data);
                 toast({
-                    title: "Successfully fetched todos!",
+                    title: "Successfully fetched labels!",
                     variant: "default"
                 });
                 setLoading(false);
             }
             setLoading(false);
-            console.log("=========Fetch todo from hooks=============");
-            return response?.data?.todos;
+            console.log("=========Fetch label from hooks=============");
+            return response?.data?.labels;
         } catch (error: unknown) {
             setLoading(false);
             toast({
@@ -105,17 +75,12 @@ const useTodo = () => {
             });
         }
     };
-
-    const editTodo = async ({title, description, status, todoId, updationDateTime, labels}:editTodoTypes) => {
+    const editLabel = async({labelId, name}:{labelId:string; name:string;}) => {
         setLoading(true);
         try {
-            const URL = `${BASE_URL}/update_todo/${todoId}`;
+            const URL = `${BASE_URL}/update_label/${labelId}`;
             const payloadBody = {
-                title: title,
-                description: description,
-                status: status,
-                updationDateTime:updationDateTime,
-                labels:labels
+                name:name
             };
             console.log("I am from useTodo", payloadBody);
             
@@ -138,20 +103,19 @@ const useTodo = () => {
                 setLoading(false);
             }
             setLoading(false);
-        } catch (error: unknown) {
+        } catch (error) {
             setLoading(false);
             toast({
-                title: "Failed to update todo",
+                title: "Failed to update the todo",
                 variant: "destructive",
-                description: `Can't update todo! ${error}`
+                description: `Can't update this todo! ${error}`
             });
         }
     };
-
-    const deleteTodo = async ({todoId}:{todoId:number}) => {
+    const deleteLabel = async({labelId}:{labelId:number}) => {
         setLoading(true);
         try {
-            const URL = `${BASE_URL}/delete_todo/${todoId}`;
+            const URL = `${BASE_URL}/delete_label/${labelId}`;
             const response = await axios.delete(URL,
                 {
                     headers: 
@@ -175,26 +139,21 @@ const useTodo = () => {
         } catch (error: unknown) {
             setLoading(false);
             toast({
-                title: "Failed to delete todo",
+                title: "Failed to delete label",
                 variant: "destructive",
-                description: `Can't delete todo! ${error}`
+                description: `Can't delete label! ${error}`
             });
         }
-    };
-
+    }
 
     return {
-        createTodo,
-        fetchTodo,
-        editTodo,
-        deleteTodo,
-        loading
+        loading,
+        getLabel,
+        setLoading,
+        createLabel,
+        editLabel,
+        deleteLabel,
     };
 }
 
-export default useTodo;
-
-
-
-
-
+export default useLabel;

@@ -2,7 +2,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import "../App.css";
 import { companyLogo } from "@/constants/images";
-import { PlusCircle } from "lucide-react";
+import { CalendarCheck, CalendarFoldIcon, PlusCircle } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogCancel,
@@ -20,6 +20,23 @@ import { toast } from "@/hooks/use-toast";
 import TodoSection from "@/components/ui/todo-section";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
 import { ColumnType, TasksType } from "@/constants/types/todo-type";
+import { Input } from "@/components/ui/input";
+import useDebounce from "@/hooks/useDebounce";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { Calendar } from "@/components/ui/calendar"
+import { Button } from "@/components/ui/button";
+
 
 
 
@@ -29,7 +46,11 @@ const Home = () => {
   const { fetchTodo, editTodo } = useTodo();
   const [refresh, setRefresh] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  // const {drag, setDragging} = useContext(AuthContext);
+  const [query, setQuery] = useState<string>("");
+  const debouncedInputValue = useDebounce(query, 2000);
+  const [startDate, setStartDate] = useState<Date | undefined>(new Date());
+  const [endDate, setEndDate] = useState<Date | undefined>(new Date());
+  const [option, setOption] = useState<string>("");
 
   async function handleFetchData() {
     try {
@@ -78,12 +99,12 @@ const Home = () => {
     try {
       // Update the status locally
       // setDragging(true);
-        setTodoList((prevTasks) =>
-          prevTasks.map((task) =>
-            task.id === taskId ? { ...task, status: newStatus } : task
-          )
-        );
-      
+      setTodoList((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === taskId ? { ...task, status: newStatus } : task
+        )
+      );
+
       await editTodo({
         title: taskToUpdate.title,
         description: taskToUpdate.description,
@@ -101,16 +122,22 @@ const Home = () => {
   }
 
 
+
   useEffect(() => {
     handleFetchData();
-  }, [refresh])
+  }, [refresh]);
+
 
   const COLUMNS: ColumnType[] = [
     { id: 'incomplete', title: 'To Do' },
     { id: 'progress', title: 'In Progress' },
     { id: 'complete', title: 'Done' }
   ];
-
+  const filteredTodos = todoList.filter(
+    (todo) =>
+      todo.title?.toLowerCase().includes(debouncedInputValue.toLowerCase()) ||
+      todo.description?.toLowerCase().includes(debouncedInputValue.toLowerCase())
+  );
   return (
     <div className="h-[700px] bg-slate-700 w-full p-5 overflow-hidden">
       <h1 className="text-sm text-slate-700 font-semibold bg-yellow-200 py-1">
@@ -129,11 +156,11 @@ const Home = () => {
       {todoList.length &&
         (
           <div className="flex flex-col items-center justify-start border-2 border-slate-500 rounded-lg h-[85%] px-5">
-            <div className="flex flex-row items-start justify-start w-full my-3">
+            <div className="flex flex-row items-center justify-start w-full my-3">
               <AlertDialog open={isOpen} onOpenChange={setIsOpen}>
                 <AlertDialogTrigger>
-                  <div className="flex flex-row gap-3 items-center justify-between text-white hover:animate-pulse text-sm">
-                    <p>Create New</p>
+                  <div className="flex flex-row gap-1 items-center justify-between text-white hover:animate-pulse text-sm">
+                    <p className="text-xs">Create</p>
                     <PlusCircle color="white" size={20} />
                   </div>
                 </AlertDialogTrigger>
@@ -149,6 +176,52 @@ const Home = () => {
                   </AlertDialogFooter>
                 </AlertDialogContent>
               </AlertDialog>
+              <div className="mx-3 w-[90%] my-2 caret-white text-white flex flex-row items-center justify-between gap-3">
+                <Input
+                  placeholder={`Search todos...`}
+                  value={query}
+                  onChange={(e) => { setQuery(e.target.value) }}
+                />
+                <Select onValueChange={(e) => { setOption(e); }}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Filter" onChange={(e) => { console.log(e.currentTarget.textContent); }} />
+                  </SelectTrigger>
+                  <SelectContent >
+                    <SelectItem value="dateandtime">Date & Time</SelectItem>
+                    <SelectItem value="priority">Proirity</SelectItem>
+                    <SelectItem value="cat">Category/Labels</SelectItem>
+                  </SelectContent>
+                </Select>
+                {option==="dateandtime" && (<div className="bg-slate-600 p-2 rounded-lg flex flex-row items-center justify-center gap-2">
+                  <Popover>
+                    <PopoverTrigger className="px-4 text-xs font-bold">
+                      <CalendarFoldIcon color="white" />
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <Calendar
+                        mode="single"
+                        selected={startDate}
+                        onSelect={setStartDate}
+                        className="rounded-md border text-blue-500"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Popover>
+                    <PopoverTrigger className="px-4 text-xs font-bold">
+                      <CalendarCheck color="white" />
+                    </PopoverTrigger>
+                    <PopoverContent>
+                      <Calendar
+                        mode="single"
+                        selected={endDate}
+                        onSelect={setEndDate}
+                        className="rounded-md border text-blue-500"
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <Button>Search</Button>
+                </div>)}
+              </div>
             </div>
             <div className="flex flex-row items-start justify-between gap-10 w-full">
               <DndContext onDragEnd={handleDragEnd}>
@@ -156,7 +229,7 @@ const Home = () => {
                   <TodoSection
                     key={column.id}
                     column={column}
-                    todoList={todoList.filter((task) => task.status === column.id)}
+                    todoList={filteredTodos.filter((task) => task.status === column.id)}
                     onTodoChange={handleTodoChange}
                     onDeleteSuccess={handleDeleteSuccess}
                   />

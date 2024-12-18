@@ -3,8 +3,10 @@ const Prisma = new PrismaClient();
 
 const todoCreateHandler = async (req: any, h: any) => {
     try {
-        const { title, description, status } = req.payload;
-        const userId = req.auth.userId; 
+        const { title, description, status, creationDateTime, updationDateTime, priority, labels } = req.payload;
+        const userId = req.auth.userId;
+
+        // Check for existing Todo with the same title for the user
         const existingTodo = await Prisma.todo.findFirst({
             where: {
                 title: {
@@ -21,14 +23,26 @@ const todoCreateHandler = async (req: any, h: any) => {
             }).code(400); // Bad request as it's a validation error
         }
 
+        // Prepare label associations
+        const labelConnections = labels?.map((labelId: number) => ({ id: labelId })) || [];
+
         // Create a new Todo
         const newTodo = await Prisma.todo.create({
             data: {
                 title: title,
                 description: description,
                 status: status,
-                userId: userId
-            }
+                userId: userId,
+                creationDateTime: creationDateTime,
+                updationDateTime: updationDateTime,
+                priority: priority,
+                labels: {
+                    connect: labelConnections, // Use the `connect` keyword to link existing labels
+                },
+            },
+            include: {
+                labels: true, // Include labels in the response
+            },
         });
 
         return h.response({
@@ -43,15 +57,18 @@ const todoCreateHandler = async (req: any, h: any) => {
             error: error.message || "Internal Server Error"
         }).code(500);
     }
-}
+};
 
 
 const todoReadHandler = async (req: any, h: any) => {
-    const userId = req.auth.userId; 
+    const userId = req.auth.userId;
     try {
         const allTodos = await Prisma.todo.findMany({
             where: {
                 userId: userId
+            },
+            include: {
+                labels: true
             }
         });
         if (!allTodos || allTodos.length === 0) {
@@ -77,55 +94,58 @@ const todoReadHandler = async (req: any, h: any) => {
 const todoUpdateHandler = async (req: any, h: any) => {
     const { todoId } = req.params;
     const userId = req.auth.userId;
-    const { title, description, status } = req.payload;
+    const { title, description, status, updationDateTime, priority, labels } = req.payload;
+
     try {
-        if(!userId){
-            const existingTodo = await Prisma.todo.findUnique({
-                where: {
-                    id: todoId
-                }
-            });
-            if (!existingTodo) {
-                return h.response({
-                    "message": "Todo Can't be updated, as it does not exist"
-                }).code(401);
-            }
-            const updatedTodo = await Prisma.todo.update({
-                where: {
-                    id: todoId
-                },
-                data: {
-                    title: title,
-                    description: description,
-                    status: status,
-                }
-            });
-            if (!updatedTodo) {
-                return h.response({
-                    "message": "Can't update todo"
-                }).code(404);
-            }
+        // Check if the Todo exists and belongs to the user
+        const existingTodo = await Prisma.todo.findUnique({
+            where: { id: todoId },
+            include: { user: true },
+        });
+
+        if (!existingTodo || existingTodo.userId !== userId) {
             return h.response({
-                message: "Successfully updated existing todo",
-                todo: updatedTodo
-            }).code(201); // Use 201 for resource creation
+                message: "Todo can't be updated as it does not exist or does not belong to this user",
+            }).code(401);
         }
+
+        // Update the Todo fields
+        const updatedTodo = await Prisma.todo.update({
+            where: { id: todoId },
+            data: {
+                title: title,
+                description: description,
+                status: status,
+                updationDateTime: updationDateTime,
+                priority: priority,
+                // Update the labels by connecting new ones and disconnecting old ones
+                labels: {
+                    set: labels.map((labelId: number) => ({ id: labelId })), // Clear existing and set new labels
+                },
+            },
+            include: { labels: true }, // Include updated labels in the response
+        });
+
+        return h.response({
+            message: "Successfully updated the todo",
+            todo: updatedTodo,
+        }).code(200); // Use 200 for successful updates
+
     } catch (error: any) {
         console.error(error);
         return h.response({
             message: "An error occurred while updating the Todo",
-            error: error.message || "Internal Server Error"
+            error: error.message || "Internal Server Error",
         }).code(500);
     }
-
-}
+};
 
 
 const todoDeleteHandler = async (req: any, h: any) => {
     const { todoId } = req.params;
     const userId = req.auth.userId;
     try {
-        if(userId){
+        if (userId) {
             const existingTodo = await Prisma.todo.findUnique({
                 where: {
                     id: todoId
@@ -164,7 +184,11 @@ const todoDeleteHandler = async (req: any, h: any) => {
 
 const todoFetchAllHandler = async (req: any, h: any) => {
     try {
-        const allTodos = await Prisma.todo.findMany();
+        const allTodos = await Prisma.todo.findMany({
+            include: {
+                labels: true
+            }
+        });
         if (!allTodos) {
             return h.response({
                 "message": "No todos found"
@@ -192,3 +216,7 @@ export {
     todoDeleteHandler,
     todoFetchAllHandler,
 }
+
+
+
+

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardContent,
 } from "@/components/ui/card";
-import { TrashIcon } from "lucide-react";
+import { BabyIcon, TimerResetIcon, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "./input";
 import useTodo from "@/hooks/useTodo";
@@ -34,8 +34,6 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
   const [newDesc, setNewDesc] = useState(task.description || "");
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descInputRef = useRef<HTMLInputElement>(null);
-
-
 
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable(
@@ -188,6 +186,14 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
+          <div className="flex flex-row items-center justify-center gap-3">
+            <BabyIcon size={20} className="text-slate-500"/>
+            <p className="text-white text-xs">18/12/24</p>
+          </div>
+          <div className="flex flex-row items-center justify-center gap-3">
+            <TimerResetIcon size={20} className="text-slate-500"/>
+            <p className="text-white text-xs">18/12/24</p>
+          </div>
         </CardFooter>
       </Card>
     </div>

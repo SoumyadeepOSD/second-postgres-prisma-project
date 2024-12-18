@@ -12,5 +12,13 @@ export const todoRoutes = {
     VIEWTODO:"/view_todo",
     UPDATETODO: "/update_todo/{todoId}",
     DELETETODO:"/delete_todo/{todoId}",
-    VIEW_ALL: "/fetch_all_todos/{userId}"
+    VIEW_ALL: "/fetch_all_todos"
+};
+
+export const labelRoutes = {
+    CREATE:"/create_label",
+    VIEWLABEL:"/view_label",
+    UPDATELABEL: "/update_label/{labelId}",
+    DELETELABEL:"/delete_label/{labelId}",
+    VIEW_ALL_LABELS: "/fetch_all_labels"
 };

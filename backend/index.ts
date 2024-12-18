@@ -1,10 +1,12 @@
-import { authRoutes, todoRoutes } from "./src/routes/route";
+import { authRoutes, labelRoutes, todoRoutes } from "./src/routes/route";
 import { httpMethods } from "./src/methods";
 import { todoHeaderValidators, todoParamsValidators, todoPayloadValidators } from "./src/validations/todo";
 import { headerValidators, userParamValidators, userPayloadValidators } from "./src/validations/user";
 import { fetchAllUsersHandler, tokenValidHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userSignupHandler } from "./src/handler/user";
 import { todoCreateHandler, todoDeleteHandler, todoFetchAllHandler, todoReadHandler, todoUpdateHandler } from "./src/handler/todo";
 import authMiddleware from "./src/middleware/auth-middleware";
+import { labelHeaderValidators, labelParamsValidators, labelPayloadValidators } from "./src/validations/label";
+import { labelCreateHandler, labelDeleteHandler, labelReadHandler, labelUpdateHandler } from "./src/handler/label";
 
 const HapiSwagger = require("hapi-swagger");
 const basicAuth = require("basic-auth");
@@ -70,34 +72,34 @@ const init = async () => {
 
 
 
-    //*LOGIN REQUEST
-    server.route({
-        method: httpMethods.POST,
-        path: authRoutes.LOGIN,
-        options: {
-            tags: ["api", "users"],
-            validate: {
-                headers: headerValidators.userLogin,
-                payload: userPayloadValidators.userLogin,
-            },
-            handler: userLoginHandler
-        }
-    }),
+        //*LOGIN REQUEST
+        server.route({
+            method: httpMethods.POST,
+            path: authRoutes.LOGIN,
+            options: {
+                tags: ["api", "users"],
+                validate: {
+                    headers: headerValidators.userLogin,
+                    payload: userPayloadValidators.userLogin,
+                },
+                handler: userLoginHandler
+            }
+        }),
 
 
 
-    //*SIGNUP REQUEST
-    server.route({
-        method: httpMethods.POST,
-        path: authRoutes.SIGNUP,
-        options: {
-            tags: ["api", "users"],
-            validate: {
-                payload: userPayloadValidators.userSignup
-            },
-            handler: userSignupHandler
-        }
-    });
+        //*SIGNUP REQUEST
+        server.route({
+            method: httpMethods.POST,
+            path: authRoutes.SIGNUP,
+            options: {
+                tags: ["api", "users"],
+                validate: {
+                    payload: userPayloadValidators.userSignup
+                },
+                handler: userSignupHandler
+            }
+        });
 
 
 
@@ -141,6 +143,69 @@ const init = async () => {
         options: {
             tags: ["api", "users"],
             handler: fetchAllUsersHandler
+        }
+    });
+
+    // *===================LABEL SECTION========================
+    // //~ Create
+    server.route({
+        method: httpMethods.POST,
+        path: labelRoutes.CREATE,
+        options: {
+            tags: ["api", "labels"],
+            pre: [{ method: authMiddleware }],
+            validate: {
+                headers: labelHeaderValidators.userValid,
+                payload: labelPayloadValidators.labelCreate,
+            },
+            handler: labelCreateHandler
+        }
+    });
+
+
+    //~ GET
+    server.route({
+        method: httpMethods.GET,
+        path: labelRoutes.VIEWLABEL,
+        options: {
+            tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
+            validate: {
+                headers: labelHeaderValidators.userValid,
+            },
+            handler: labelReadHandler
+        }
+    });
+
+
+    //~ Update
+    server.route({
+        method: httpMethods.PATCH,
+        path: labelRoutes.UPDATELABEL,
+        options: {
+            tags: ["api", "labels"],
+            pre: [{ method: authMiddleware }],
+            validate: {
+                headers: labelHeaderValidators.userValid,
+                params: labelParamsValidators.labelUpdate,
+                payload: labelPayloadValidators.labelUpdate,
+            },
+            handler: labelUpdateHandler
+        }
+    });
+
+    //~ Delete
+    server.route({
+        method: httpMethods.DELETE,
+        path: labelRoutes.DELETELABEL,
+        options: {
+            tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
+            validate: {
+                headers: labelHeaderValidators.userValid,
+                params: labelParamsValidators.labelDelete,
+            },
+            handler: labelDeleteHandler
         }
     });
 
