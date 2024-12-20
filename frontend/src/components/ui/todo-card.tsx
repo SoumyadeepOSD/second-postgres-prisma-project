@@ -11,7 +11,7 @@ import { useEffect, useRef, useState } from "react";
 import { Input } from "./input";
 import useTodo from "@/hooks/useTodo";
 import { toast } from "@/hooks/use-toast";
-import { TasksType } from "@/constants/types/todo-type";
+import { LabelsType, TasksType } from "@/constants/types/todo-type";
 import { useDraggable } from "@dnd-kit/core";
 import {
   AlertDialog,
@@ -75,10 +75,19 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
     }
   }
 
-  async function handleKeyPress(e: React.KeyboardEvent, title: string, description: string, status: string, tododId: number, type: string) {
+  async function handleKeyPress(e: React.KeyboardEvent, title: string, description: string, status: string, tododId: number, type: string, creationDateTime:string, updationDateTime:string,labels:LabelsType[],priority:number) {
     if (e.key === "Enter") {
       try {
-        await editTodo({ title: title, description: description, status: status, todoId: tododId });
+        await editTodo({ 
+          title: title, 
+          description: description, 
+          status: status, 
+          todoId: tododId,
+          creationDateTime:creationDateTime,
+          updationDateTime:updationDateTime,
+          labels:labels?.map((e)=>e.id!),
+          priority:priority
+        });
         handleBlur(type);
         onTodoChange();
       } catch (error: any) {
@@ -139,7 +148,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
                 value={newTitle}
                 onChange={(e) => { handleChange(e, "title") }}
                 onBlur={() => { handleBlur("title"); }}
-                onKeyDown={(e) => { handleKeyPress(e, newTitle, task.description!, task.status!, task.id!, "title"); }}
+                onKeyDown={(e) => { handleKeyPress(e, newTitle, task.description!, task.status!, task.id!, "title", task.creationDateTime!,task.updationDateTime!,task.labels!,task.priority!); }}
                 ref={titleInputRef}
                 className="bg-transparent ring-0 caret-white border-transparent overflow-x-scroll"
               />
@@ -158,7 +167,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
               value={newDesc}
               onChange={(e) => { handleChange(e, "desc") }}
               onBlur={() => { handleBlur("desc"); }}
-              onKeyDown={(e) => { handleKeyPress(e, task.title!, newDesc, task.status!, task.id!, "desc"); }}
+              onKeyDown={(e) => { handleKeyPress(e, task.title!, newDesc, task.status!, task.id!, "desc", task.creationDateTime!,task.updationDateTime!,task.labels!,task.priority!); }}
               ref={descInputRef}
               className="bg-transparent ring-0 caret-white border-transparent block overflow-auto"
             />
@@ -166,33 +175,44 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
             newDesc
           )}
         </CardContent>
-        <CardFooter className="flex flex-row items-center justify-between">
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              {/* Removed the wrapping div and applied the trigger directly to the TrashIcon */}
-              <TrashIcon className="text-red-500 hover:cursor-pointer hover:bg-red-200 rounded-full p-1" />
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone. This will permanently delete your account
-                  and remove your data from our servers.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction className="text-white bg-red-500 hover:bg-red-800" onClick={() => { handleDelete({ itemId: task.id! }) }}>Continue</AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-          <div className="flex flex-row items-center justify-center gap-3">
-            <BabyIcon size={20} className="text-slate-500"/>
-            <p className="text-white text-xs">18/12/24</p>
+        <CardFooter className="flex flex-col items-center justify-between gap-2">
+          <div className="flex flex-row items-center justify-between w-full">
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                {/* Removed the wrapping div and applied the trigger directly to the TrashIcon */}
+                <TrashIcon className="text-red-500 hover:cursor-pointer hover:bg-red-200 rounded-full p-1" />
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your account
+                    and remove your data from our servers.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction className="text-white bg-red-500 hover:bg-red-800" onClick={() => { handleDelete({ itemId: task.id! }) }}>Continue</AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+            <div className="flex flex-row items-center justify-center gap-3">
+              <BabyIcon size={20} className="text-slate-500" />
+              <p className="text-white text-xs">{task.creationDateTime}</p>
+            </div>
+            <div className="flex flex-row items-center justify-center gap-3">
+              <TimerResetIcon size={20} className="text-slate-500" />
+              <p className="text-white text-xs">{task.updationDateTime}</p>
+            </div>
           </div>
-          <div className="flex flex-row items-center justify-center gap-3">
-            <TimerResetIcon size={20} className="text-slate-500"/>
-            <p className="text-white text-xs">18/12/24</p>
+          <div className="w-full grid grid-cols-5 items-start gap-2">
+            {
+              task.labels?.map((l, i) => 
+              (<div key={i || l.id} className="text-xs font-semibold text-blue-200 bg-gradient-to-br from-blue-700 to-blue-950 border-[1px] border-white px-2 py-1 rounded-xl">
+                {l.name}
+              </div>)
+              )
+            }
           </div>
         </CardFooter>
       </Card>

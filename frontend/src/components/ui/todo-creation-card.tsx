@@ -11,20 +11,28 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select"
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import useLabel from "@/hooks/useLabel"
 
 type Inputs = {
     title: string
     description: string
 }
 
-
 type TodoCreationCardProps = {
     onCreateSuccess: () => void; // Notify parent when todo is created
 };
 
+type fetchedLabelType = {
+    id?: number;
+    name?: string;
+};
+
+
 const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
     const { createTodo } = useTodo();
+    const { getLabel } = useLabel();
+    const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[]>([]);
     const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
     const {
         register,
@@ -32,14 +40,43 @@ const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
         formState: { errors },
     } = useForm<Inputs>()
     const onSubmit: SubmitHandler<Inputs> = async (data) => {
-        await createTodo({ title: data.title, description: data.description, labels:selectedLabels });
+        await createTodo(
+            {
+                title: data.title,
+                description: data.description,
+                labels: selectedLabels
+            }
+        );
         onCreateSuccess();
     };
 
 
-    const onHandleSetLabels = (e:any)=>{
-        setSelectedLabels((prev)=>[...prev, e])
+    const onHandleSetLabels = (e: any) => {
+        const number = parseInt(e, 10);
+        if (!isNaN(number)) {
+            setSelectedLabels((prev) => {
+                if (!prev.includes(number)) {
+                    return [...prev, e];
+                }
+                return prev; // Return the unmodified array if the element is already included
+            });
+        }
     };
+
+
+    const fetchLabels = async () => {
+        const labels = await getLabel();
+        setFetchedLabels(labels);
+    }
+
+
+
+    useEffect(() => {
+        fetchLabels();
+        console.log("fetched labels", fetchedLabels);
+        console.log("selected labels", selectedLabels);
+    }, []);
+
 
     return (
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5">
@@ -54,18 +91,26 @@ const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
                 <Input {...register("description", { required: true })} />
                 {errors.description && <span className="text-red-500">Description is required</span>}
             </div>
-
             <Select onValueChange={onHandleSetLabels}>
                 <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Labels" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem value="light">Gardening</SelectItem>
-                    <SelectItem value="dark">Cutting</SelectItem>
-                    <SelectItem value="system">Cooking</SelectItem>
+                    {
+                        fetchedLabels.map((item, index) => {
+                            return (
+                                <SelectItem key={index || item.id} value={item.id!.toString()}>
+                                    {item.name}
+                                </SelectItem>
+                            );
+                        })
+                    }
                 </SelectContent>
             </Select>
-
+            <p className="text-black text-xs">all labels</p>
+            {
+                JSON.stringify(selectedLabels.map((e) => +e))
+            }
             <Button type="submit">
                 Create
             </Button>

@@ -13,12 +13,18 @@ import Testing from "./pages/testing";
 function App() {
   const [accessToken, setAccessToken] = useState<string>("");
   const [refreshToken, setRefreshToken] = useState<string>("");
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [endDate, setEndDate] = useState<Date | undefined>();
 
   return (
     <div>
       <AuthContext.Provider
         value={{
+          endDate,
+          startDate,
+          setEndDate,
           accessToken,
+          setStartDate,
           refreshToken,
           setAccessToken,
           setRefreshToken,

@@ -62,39 +62,68 @@ const todoCreateHandler = async (req: any, h: any) => {
 
 const todoReadHandler = async (req: any, h: any) => {
     const userId = req.auth.userId;
+    const { start, end, q } = req.query;
+
     try {
+        const whereClause: any = { userId };
+
+        if (start) {
+            // Add one day to the start date
+            const parsedStart = new Date(new Date(start));
+            parsedStart.setDate(parsedStart.getDate() + 1); // Add one day
+            const adjustedStart = parsedStart.toISOString().split('T')[0]; // Format to ISO date string
+            console.log("Parsed Start Date + 1 Day:", adjustedStart);
+            whereClause.creationDateTime = { gte: adjustedStart }; // Set greater than or equal to adjusted start
+        }
+
+        if (end) {
+            const parsedEnd = new Date(new Date(end));
+            parsedEnd.setDate(parsedEnd.getDate() + 1); // Add one day
+            const adjustedEnd = parsedEnd.toISOString().split('T')[0]; // Format to ISO date string
+            console.log("Parsed End Date + 1 Day:", adjustedEnd);
+            // Merge with the existing `creationDateTime` condition
+            whereClause.creationDateTime = {
+                ...(whereClause.creationDateTime || {}),
+                lte: adjustedEnd, // Set less than or equal to end date
+            };
+        }
+
+        if (q) {
+            whereClause.OR = [
+                { title: { contains: q, mode: "insensitive" } }, // Case-insensitive match in title
+                { description: { contains: q, mode: "insensitive" } }, // Case-insensitive match in description
+            ];
+            console.log("Search Query:", q);
+        }
+
+        console.log("Final Where Clause:", whereClause);
+
         const allTodos = await Prisma.todo.findMany({
-            where: {
-                userId: userId
-            },
-            include: {
-                labels: true
-            }
+            where: whereClause,
+            include: { labels: true },
         });
-        if (!allTodos || allTodos.length === 0) {
-            return h.response({
-                message: "No todos found",
-            }).code(200);
-        }
+
+
         return {
-            "message": "Successfully get all todos",
-            "todos": allTodos
-        }
+            message: `Successfully retrieved ${allTodos.length} todos`,
+            todos: allTodos,
+            others: { start, end },
+        };
     } catch (error: any) {
         console.error(error);
         return h.response({
             message: "An error occurred while reading the todos",
-            error: error.message || "Internal Server Error"
+            error: error.message || "Internal Server Error",
         }).code(500);
     }
+};
 
-}
 
 
 const todoUpdateHandler = async (req: any, h: any) => {
     const { todoId } = req.params;
     const userId = req.auth.userId;
-    const { title, description, status, updationDateTime, priority, labels } = req.payload;
+    const { title, description, status, updationDateTime, creationDateTime, priority, labels } = req.payload;
 
     try {
         // Check if the Todo exists and belongs to the user
@@ -117,6 +146,7 @@ const todoUpdateHandler = async (req: any, h: any) => {
                 description: description,
                 status: status,
                 updationDateTime: updationDateTime,
+                creationDateTime: creationDateTime,
                 priority: priority,
                 // Update the labels by connecting new ones and disconnecting old ones
                 labels: {

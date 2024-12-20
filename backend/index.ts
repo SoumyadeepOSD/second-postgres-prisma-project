@@ -250,6 +250,7 @@ const init = async () => {
         path: todoRoutes.UPDATETODO,
         options: {
             tags: ["api", "todos"],
+            pre: [{ method: authMiddleware }],
             validate: {
                 headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoUpdate,

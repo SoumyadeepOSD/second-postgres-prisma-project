@@ -7,6 +7,7 @@ const statusValidator = Joi.string().valid("incomplete", "progress", "complete")
 const priorityValidator = Joi.number().valid(1, 2, 3, 4).default(4);
 const labelsValidator = Joi.array().items(Joi.number().integer()).optional();  // Validate array of label IDs
 
+
 // Payload Validators
 export const todoPayloadValidators = {
     todoCreate: Joi.object({
@@ -26,6 +27,8 @@ export const todoPayloadValidators = {
         description: stringRequired,
         status: statusValidator.required(),
         updationDateTime: stringRequired,
+        creationDateTime: stringRequired,
+        priority: priorityValidator,
         labels: labelsValidator,  // Add labels field for updating labels in Todo
     }),
 };

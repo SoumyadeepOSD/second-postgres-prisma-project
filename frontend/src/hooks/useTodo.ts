@@ -1,17 +1,16 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import axios from "axios";
 import { toast } from "./use-toast";
-import { generateDateAndTimeToString } from "@/lib/helpers";
-
+import AuthContext from "@/context/authContext";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL!;
 const access_token = localStorage.getItem("access_token");   
-const currentDateAndTime = generateDateAndTimeToString();
+const currentDateAndTime = new Date().toISOString().toString().split('T')[0];
 
 const useTodo = () => {
     
     const [loading, setLoading] = useState(false);
-
+    const {startDate, endDate} = useContext(AuthContext);
     interface createTodoTypes {
         title?: string;
         description?: string;
@@ -23,8 +22,10 @@ const useTodo = () => {
         description?: string;
         status?: string;
         todoId?: number;
+        creationDateTime?:string;
         updationDateTime?: string;
-        labels?: string[];
+        labels?: number[];
+        priority?:number;
     };
 
 
@@ -75,38 +76,57 @@ const useTodo = () => {
 
 
 
-    const fetchTodo = async () => {
+    const fetchTodo = async (searchQuery="") => {
         setLoading(true);
-        try {    
-            const response = await axios.get(`${BASE_URL}/view_todo`, {
-                headers: 
-                {
-                    'Content-Type': 'application/json', 
-                    'Authorization': `Bearer ${access_token}`               
+        try {
+            // Build the query string dynamically based on provided start and end
+            const queryParams = new URLSearchParams();
+            if (startDate) queryParams.append("start", startDate.toISOString());
+            if (endDate) queryParams.append("end", endDate.toISOString());
+            if(searchQuery) queryParams.append("q", searchQuery);
+    
+            console.log("Query Params", queryParams);
+    
+            // Construct the complete URL with query parameters
+            const url = `${BASE_URL}/view_todo${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            const response = await axios.get(url, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${access_token}`
                 }
             });
-            if (response.status === 201 || response.status === 200) {
-                console.log(response.data);
+    
+            // Check for successful response
+            if (response.status === 200 || response.status === 201) {
+                console.log("Fetched todos:", response.data);
                 toast({
                     title: "Successfully fetched todos!",
                     variant: "default"
                 });
-                setLoading(false);
+                return response?.data?.todos;
+            } else {
+                // Handle other response statuses
+                toast({
+                    title: "Failed to fetch todos",
+                    description: `Unexpected response status: ${response.status}`,
+                    variant: "destructive"
+                });
             }
-            setLoading(false);
-            console.log("=========Fetch todo from hooks=============");
-            return response?.data?.todos;
         } catch (error: unknown) {
-            setLoading(false);
+            // Handle errors during the fetch operation
             toast({
-                title: "Failed to fetch all todos",
+                title: "Failed to fetch todos",
                 variant: "destructive",
-                description: `Can't fetch all todos! ${error}`
+                description: `Can't fetch todos! ${error instanceof Error ? error.message : error}`
             });
+        } finally {
+            // Ensure loading is stopped after the operation
+            setLoading(false);
         }
     };
-
-    const editTodo = async ({title, description, status, todoId, updationDateTime, labels}:editTodoTypes) => {
+        
+        
+    const editTodo = async ({title, description, status, todoId, creationDateTime, updationDateTime, labels, priority}:editTodoTypes) => {
         setLoading(true);
         try {
             const URL = `${BASE_URL}/update_todo/${todoId}`;
@@ -114,8 +134,10 @@ const useTodo = () => {
                 title: title,
                 description: description,
                 status: status,
+                creationDateTime:creationDateTime,
                 updationDateTime:updationDateTime,
-                labels:labels
+                labels:labels,
+                priority:priority
             };
             console.log("I am from useTodo", payloadBody);
             

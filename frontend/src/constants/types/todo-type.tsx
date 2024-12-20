@@ -3,10 +3,20 @@ export interface ColumnType {
     title?: string;
 };
 
+export interface LabelsType{
+    id?:number;
+    name?:string;
+    userId?:number;
+}
 
 export interface TasksType {
     id?: number;
     title?: string;
     description?: string;
     status?: string;
+    creationDateTime?: string;
+    updationDateTime?: string;
+    priority?: number;
+    userId?: number;
+    labels?: LabelsType[] | undefined
 };
