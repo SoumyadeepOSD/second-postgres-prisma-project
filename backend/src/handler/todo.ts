@@ -101,6 +101,9 @@ const todoReadHandler = async (req: any, h: any) => {
         const allTodos = await Prisma.todo.findMany({
             where: whereClause,
             include: { labels: true },
+            orderBy: {
+                id: 'desc',
+            },
         });
 
 

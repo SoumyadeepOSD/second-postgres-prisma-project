@@ -291,7 +291,7 @@ const Home = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <Button onClick={handleSearchByDate}>Search</Button>
+                  <Button onClick={handleSearchByDate} disabled={!endDate}>Search</Button>
                 </div>)}
               </div>
             </div>

@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardContent,
 } from "@/components/ui/card";
-import { BabyIcon, TimerResetIcon, TrashIcon } from "lucide-react";
+import { BabyIcon, CheckCircle2, TrashIcon } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Input } from "./input";
 import useTodo from "@/hooks/useTodo";
@@ -24,17 +24,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { priorityMapping } from "@/lib/helpers";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select";
 
 
 const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, onTodoChange: () => void, onDeleteSuccess: () => void }) => {
   const { editTodo, deleteTodo } = useTodo();
   const [editableTitle, setEditableTitle] = useState(false);
   const [editableDesc, setEditableDesc] = useState(false);
+  const [editablePriority, setEditablePriority] = useState(false);
+
   const [newTitle, setNewTitle] = useState(task.title || "");
   const [newDesc, setNewDesc] = useState(task.description || "");
+  const [newPriority, setNewPriority] = useState(task.priority || 4);
   const titleInputRef = useRef<HTMLInputElement>(null);
   const descInputRef = useRef<HTMLInputElement>(null);
-
+  const priorities = [1, 2, 3, 4];
 
   const { attributes, listeners, setNodeRef, transform } = useDraggable(
     {
@@ -72,21 +77,23 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
       setNewTitle(e.target.value);
     } else if (type === "desc") {
       setNewDesc(e.target.value);
+    } else if (type === "priority") {
+      setNewPriority(+e); //transform the priority text to number and set into the state
     }
   }
 
-  async function handleKeyPress(e: React.KeyboardEvent, title: string, description: string, status: string, tododId: number, type: string, creationDateTime:string, updationDateTime:string,labels:LabelsType[],priority:number) {
+  async function handleKeyPress(e: React.KeyboardEvent, title: string, description: string, status: string, tododId: number, type: string, creationDateTime: string, updationDateTime: string, labels: LabelsType[], priority: number) {
     if (e.key === "Enter") {
       try {
-        await editTodo({ 
-          title: title, 
-          description: description, 
-          status: status, 
+        await editTodo({
+          title: title,
+          description: description,
+          status: status,
           todoId: tododId,
-          creationDateTime:creationDateTime,
-          updationDateTime:updationDateTime,
-          labels:labels?.map((e)=>e.id!),
-          priority:priority
+          creationDateTime: creationDateTime,
+          updationDateTime: updationDateTime,
+          labels: labels?.map((e) => e.id!),
+          priority: priority
         });
         handleBlur(type);
         onTodoChange();
@@ -115,6 +122,27 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
     }
   };
 
+
+  const handleSelect = async ({ labels, tododId }: { labels: LabelsType[], tododId: number }) => {
+    try {
+      await editTodo({
+        ...task,
+        labels: labels?.map((e) => e.id!),
+        todoId: tododId,
+        priority: newPriority,
+      });
+      console.log(`After setting priority ${task} ${newPriority}`);
+
+      setEditablePriority(false); // Exit edit mode after successful update
+      onTodoChange(); // Refresh the todo list to reflect the updated priority
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update priority.",
+        variant: "destructive",
+      });
+    }
+  };
 
 
 
@@ -148,7 +176,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
                 value={newTitle}
                 onChange={(e) => { handleChange(e, "title") }}
                 onBlur={() => { handleBlur("title"); }}
-                onKeyDown={(e) => { handleKeyPress(e, newTitle, task.description!, task.status!, task.id!, "title", task.creationDateTime!,task.updationDateTime!,task.labels!,task.priority!); }}
+                onKeyDown={(e) => { handleKeyPress(e, newTitle, task.description!, task.status!, task.id!, "title", task.creationDateTime!, task.updationDateTime!, task.labels!, task.priority!); }}
                 ref={titleInputRef}
                 className="bg-transparent ring-0 caret-white border-transparent overflow-x-scroll"
               />
@@ -167,7 +195,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
               value={newDesc}
               onChange={(e) => { handleChange(e, "desc") }}
               onBlur={() => { handleBlur("desc"); }}
-              onKeyDown={(e) => { handleKeyPress(e, task.title!, newDesc, task.status!, task.id!, "desc", task.creationDateTime!,task.updationDateTime!,task.labels!,task.priority!); }}
+              onKeyDown={(e) => { handleKeyPress(e, task.title!, newDesc, task.status!, task.id!, "desc", task.creationDateTime!, task.updationDateTime!, task.labels!, task.priority!); }}
               ref={descInputRef}
               className="bg-transparent ring-0 caret-white border-transparent block overflow-auto"
             />
@@ -200,14 +228,39 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
               <BabyIcon size={20} className="text-slate-500" />
               <p className="text-white text-xs">{task.creationDateTime}</p>
             </div>
-            <div className="flex flex-row items-center justify-center gap-3">
-              <TimerResetIcon size={20} className="text-slate-500" />
-              <p className="text-white text-xs">{task.updationDateTime}</p>
-            </div>
+            {
+              editablePriority ? (
+                <div className="flex flex-row items-center justify-start">
+                  <Select
+                    onValueChange={(value) => setNewPriority(+value)} // Store the selected priority as a number
+                    defaultValue={newPriority.toString()} // Set the current priority as default
+                  >
+                    <SelectTrigger className="w-[70px] text-white">
+                      <SelectValue placeholder={newPriority.toString()} />
+                    </SelectTrigger>
+                    <SelectContent className="text-white bg-slate-500">
+                      {priorities.map((priority, index) => (
+                        <SelectItem key={index} value={priority.toString()}>
+                          {priorityMapping({ priority: priority })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <CheckCircle2 color="white" onClick={() => { handleSelect({ labels: task.labels!, tododId: task.id! }) }} />
+                </div>
+              ) : (
+                <p
+                  onDoubleClick={() => setEditablePriority(true)} // Enable editing on double-click
+                  className="cursor-pointer text-white bg-slate-700 px-3 py-1 rounded-xl text-xs border-2 border-slate-500"
+                >
+                  {priorityMapping({ priority: newPriority })}
+                </p>
+              )
+            }
           </div>
           <div className="w-full grid grid-cols-5 items-start gap-2">
             {
-              task.labels?.map((l, i) => 
+              task.labels?.map((l, i) =>
               (<div key={i || l.id} className="text-xs font-semibold text-blue-200 bg-gradient-to-br from-blue-700 to-blue-950 border-[1px] border-white px-2 py-1 rounded-xl">
                 {l.name}
               </div>)
