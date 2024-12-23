@@ -63,7 +63,6 @@ const Home = () => {
   const [query, setQuery] = useState<string>("");
   const debouncedInputValue = useDebounce(query, 2000);
   const [option, setOption] = useState<string>("");
-
   const {
     register,
     handleSubmit,

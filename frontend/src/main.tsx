@@ -4,12 +4,18 @@ import './index.css'
 import App from './App.tsx'
 import { BrowserRouter as Router } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster"
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+
+const queryClient = new QueryClient();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <Router>
-      <Toaster/>
+    <QueryClientProvider client={queryClient}>
+      <Router>
+        <Toaster />
         <App />
-    </Router>
+      </Router>
+    </QueryClientProvider>
   </StrictMode>,
 )

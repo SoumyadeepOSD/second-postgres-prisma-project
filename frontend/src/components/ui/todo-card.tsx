@@ -251,7 +251,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
               ) : (
                 <p
                   onDoubleClick={() => setEditablePriority(true)} // Enable editing on double-click
-                  className="cursor-pointer text-white bg-slate-700 px-3 py-1 rounded-xl text-xs border-2 border-slate-500"
+                  className={`cursor-pointer text-white bg-slate-700 px-3 py-1 rounded-xl text-xs border-2 border-slate-500 ${newPriority===1?"bg-red-600":newPriority===2?"bg-orange-600":newPriority===3?"bg-yellow-500":"bg-blue-400"}`}
                 >
                   {priorityMapping({ priority: newPriority })}
                 </p>
