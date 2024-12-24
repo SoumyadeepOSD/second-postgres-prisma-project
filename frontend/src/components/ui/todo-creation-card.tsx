@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/select"
 import { useEffect, useState } from "react"
 import useLabel from "@/hooks/useLabel"
+import { fetchedLabelType } from "@/constants/types/label-tyep"
 
 type Inputs = {
     title: string
@@ -21,11 +22,6 @@ type Inputs = {
 
 type TodoCreationCardProps = {
     onCreateSuccess: () => void; // Notify parent when todo is created
-};
-
-type fetchedLabelType = {
-    id?: number;
-    name?: string;
 };
 
 

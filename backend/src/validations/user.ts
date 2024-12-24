@@ -1,10 +1,10 @@
 const Joi = require("joi");
 
 // Common Validators
-const stringRequired = Joi.string().required();
-const emailValidator = Joi.string().email().required();
-const passwordValidator = Joi.string().required();
 const idValidator = Joi.number().required();
+const stringRequired = Joi.string().required();
+const passwordValidator = Joi.string().required();
+const emailValidator = Joi.string().email().required();
 
 // Header Validators
 export const headerValidators = {
@@ -34,6 +34,7 @@ export const userPayloadValidators = {
     }),
 };
 
+// Param Validators
 export const userParamValidators = {
     userValid: Joi.object({
         tokenType: stringRequired

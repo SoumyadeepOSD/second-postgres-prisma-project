@@ -62,7 +62,7 @@ const todoCreateHandler = async (req: any, h: any) => {
 
 const todoReadHandler = async (req: any, h: any) => {
     const userId = req.auth.userId;
-    const { start, end, q } = req.query;
+    const { start, end, keyword, priority, category } = req.query;
 
     try {
         const whereClause: any = { userId };
@@ -88,12 +88,25 @@ const todoReadHandler = async (req: any, h: any) => {
             };
         }
 
-        if (q) {
+        if (keyword) {
             whereClause.OR = [
-                { title: { contains: q, mode: "insensitive" } }, // Case-insensitive match in title
-                { description: { contains: q, mode: "insensitive" } }, // Case-insensitive match in description
+                { title: { contains: keyword, mode: "insensitive" } }, // Case-insensitive match in title
+                { description: { contains: keyword, mode: "insensitive" } }, // Case-insensitive match in description
             ];
-            console.log("Search Query:", q);
+            console.log("Search Query:", keyword);
+        }
+
+        if(["1","2","3","4"].includes(priority)){
+            whereClause.priority = +priority;
+        }
+
+        if (category!="-1") {
+            const categoryId = +category; // Ensure category is a number
+            whereClause.labels = {
+                some: {
+                    id: categoryId, // Match category with label id
+                },
+            };
         }
 
         console.log("Final Where Clause:", whereClause);

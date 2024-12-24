@@ -20,3 +20,10 @@ export interface TasksType {
     userId?: number;
     labels?: LabelsType[] | undefined
 };
+
+
+export interface queryType{
+    qParam:string;
+    priority:number;
+    cat:number;
+}

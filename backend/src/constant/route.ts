@@ -1,4 +1,4 @@
-export const authRoutes = {
+export const authUserRoutes = {
     SIGNUP:"/signup",
     LOGIN:"/login",
     VALIDITY:"/valid/{tokenType}",

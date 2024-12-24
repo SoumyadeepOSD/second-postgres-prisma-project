@@ -1,7 +1,8 @@
+import { queryType } from "@/constants/types/todo-type";
 import { useEffect, useState } from "react";
 
 
-const useDebounce = (value:string, delay:number)=>{
+const useDebounce = (value:queryType, delay:number)=>{
     const [debounceValue, setDebounceValue] = useState(value);
     useEffect(()=>{
      const timer = setTimeout(()=>{

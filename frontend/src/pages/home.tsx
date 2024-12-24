@@ -20,7 +20,7 @@ import useTodo from "@/hooks/useTodo";
 import { toast } from "@/hooks/use-toast";
 import TodoSection from "@/components/ui/todo-section";
 import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import { ColumnType, TasksType } from "@/constants/types/todo-type";
+import { ColumnType, queryType, TasksType } from "@/constants/types/todo-type";
 import { Input } from "@/components/ui/input";
 import useDebounce from "@/hooks/useDebounce";
 import {
@@ -48,19 +48,26 @@ import {
 } from "@/components/ui/sheet"
 import { Label } from "@/components/ui/label";
 import AuthContext from "@/context/authContext";
+import { fetchedLabelType } from "@/constants/types/label-tyep";
 
 type Inputs = {
   label: string;
 }
 
+
 const Home = () => {
   const displayName = window.localStorage.getItem("user_name");
   const [todoList, setTodoList] = useState<TasksType[]>([]);
+  const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[]>([]);
   const { fetchTodo, editTodo } = useTodo();
-  const { createLabel } = useLabel();
+  const { createLabel, getLabel } = useLabel();
   const [refresh, setRefresh] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
-  const [query, setQuery] = useState<string>("");
+  const [query, setQuery] = useState<queryType>({
+    qParam: "",
+    priority: 0,
+    cat: -1
+  });
   const debouncedInputValue = useDebounce(query, 2000);
   const [option, setOption] = useState<string>("");
   const {
@@ -71,7 +78,7 @@ const Home = () => {
   const onSubmit: SubmitHandler<Inputs> = (data) => onCreateLabel({ label: data.label });
 
 
-  async function handleFetchData(searchQuery = "") {
+  async function handleFetchData(searchQuery?: queryType) {
     try {
       const fetchedTodos = await fetchTodo(searchQuery);
       console.log("=========Fetch todo from home=============");
@@ -83,6 +90,11 @@ const Home = () => {
         description: `Failed to fetch data ${error}`
       });
     }
+  }
+
+  const fetchLabels = async () => {
+    const labels = await getLabel();
+    setFetchedLabels(labels);
   }
 
   const handleTodoChange = () => {
@@ -122,16 +134,16 @@ const Home = () => {
         )
       );
       console.log(`New Update time ${new Date(new Date()).toString()}`);
-      
+
       await editTodo({
         title: taskToUpdate.title,
         description: taskToUpdate.description,
         status: newStatus,
         todoId: taskId,
-        creationDateTime:taskToUpdate.creationDateTime,
-        updationDateTime:new Date(new Date()).toString(),
-        labels:taskToUpdate.labels?.map((e)=>+e.id!),
-        priority:taskToUpdate.priority
+        creationDateTime: taskToUpdate.creationDateTime,
+        updationDateTime: new Date(new Date()).toString(),
+        labels: taskToUpdate.labels?.map((e) => +e.id!),
+        priority: taskToUpdate.priority
       });
     } catch (error) {
       console.error("Failed to update task status:", error);
@@ -160,14 +172,15 @@ const Home = () => {
 
   useEffect(() => {
     handleFetchData();
+    fetchLabels();
   }, [refresh]);
-  
-  
-  useEffect(() => {
-    handleFetchData(debouncedInputValue.trim());
-}, [debouncedInputValue]);
 
-  
+
+  useEffect(() => {
+    handleFetchData(debouncedInputValue);
+  }, [debouncedInputValue]);
+
+
 
 
   const COLUMNS: ColumnType[] = [
@@ -175,14 +188,14 @@ const Home = () => {
     { id: 'progress', title: 'In Progress' },
     { id: 'complete', title: 'Done' }
   ];
-  
 
-  const handleSearchByDate = ()=>{
+
+  const handleSearchByFilter = () => {
     handleFetchData();
   }
 
 
-  const {startDate, endDate, setStartDate, setEndDate} = useContext(AuthContext);
+  const { startDate, endDate, setStartDate, setEndDate } = useContext(AuthContext);
 
   return (
     <div className="h-[700px] bg-slate-700 w-full p-5 overflow-hidden">
@@ -191,7 +204,7 @@ const Home = () => {
       </h1>
       <h1 className="font-bold text-lg">Dashboard</h1>
       <p className="text-white text-xs">{startDate?.toString()} {endDate?.toString()}</p>
-      <p className="text-white text-xs">DQ {debouncedInputValue}</p>
+      <p className="text-white text-xs">DQ {debouncedInputValue.qParam}</p>
       <div className="flex flex-row items-center justify-between px-2">
         <img src={companyLogo} height={70} width={70} />
         {displayName && (
@@ -200,8 +213,7 @@ const Home = () => {
       </div>
 
 
-
-      {todoList.length+1 &&
+      {todoList.length + 1 &&
         (
           <div className="flex flex-col items-center justify-start border-2 border-slate-500 rounded-lg h-[85%] px-5">
             <div className="flex flex-row items-center justify-start w-full my-3">
@@ -250,8 +262,13 @@ const Home = () => {
               <div className="mx-3 w-[90%] my-2 caret-white text-white flex flex-row items-center justify-between gap-3">
                 <Input
                   placeholder={`Search todos...`}
-                  value={query}
-                  onChange={(e) => { setQuery(e.target.value) }}
+                  value={query.qParam}
+                  onChange={(e) => {
+                    setQuery((prev) => ({
+                      ...prev,
+                      qParam: e.target.value
+                    }))
+                  }}
                 />
                 <Select onValueChange={(e) => { setOption(e); }}>
                   <SelectTrigger className="w-[180px]">
@@ -290,8 +307,41 @@ const Home = () => {
                       />
                     </PopoverContent>
                   </Popover>
-                  <Button onClick={handleSearchByDate} disabled={!endDate}>Search</Button>
+                  <Button onClick={handleSearchByFilter} disabled={!endDate}>Search</Button>
                 </div>)}
+                {option === "priority" && (
+                  <Select onValueChange={(e) => {
+                    setQuery((prev) => ({
+                      ...prev,
+                      priority: +e
+                    }))
+                  }}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="Label" onChange={(e) => { console.log(e.currentTarget.textContent); }} />
+                    </SelectTrigger>
+                    <SelectContent >
+                      <SelectItem value="1">Urgent</SelectItem>
+                      <SelectItem value="2">High</SelectItem>
+                      <SelectItem value="3">Moderate</SelectItem>
+                      <SelectItem value="4">Base</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+                {option === "cat" && (
+                  <Select onValueChange={(e) => {
+                    setQuery((prev) => ({
+                      ...prev,
+                      cat: +e
+                    }))
+                  }}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="Label" onChange={(e) => { console.log(e.currentTarget.textContent); }} />
+                    </SelectTrigger>
+                    <SelectContent >
+                      {fetchedLabels.map((e:any,_)=>(<SelectItem key={e.id} value={e.id?.toString()}>{e.name}</SelectItem>))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
             </div>
             <div className="flex flex-row items-start justify-between gap-10 w-full">

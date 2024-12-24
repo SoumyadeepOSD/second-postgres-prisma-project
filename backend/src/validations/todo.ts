@@ -3,9 +3,9 @@ const Joi = require("joi");
 // Common Validators
 const idValidator = Joi.number().required();
 const stringRequired = Joi.string().required();
-const statusValidator = Joi.string().valid("incomplete", "progress", "complete").default("incomplete");
 const priorityValidator = Joi.number().valid(1, 2, 3, 4).default(4);
 const labelsValidator = Joi.array().items(Joi.number().integer()).optional();  // Validate array of label IDs
+const statusValidator = Joi.string().valid("incomplete", "progress", "complete").default("incomplete");
 
 
 // Payload Validators

@@ -7,6 +7,8 @@ const BASE_URL = import.meta.env.VITE_BASE_URL!;
 const access_token = localStorage.getItem("access_token");   
 const currentDateAndTime = new Date().toISOString().toString().split('T')[0];
 
+
+
 const useTodo = () => {
     
     const [loading, setLoading] = useState(false);
@@ -76,15 +78,17 @@ const useTodo = () => {
 
 
 
-    const fetchTodo = async (searchQuery="") => {
+    const fetchTodo = async (searchQuery={qParam:"",priority:0,cat:0}) => {
         setLoading(true);
         try {
             // Build the query string dynamically based on provided start and end
             const queryParams = new URLSearchParams();
             if (startDate) queryParams.append("start", startDate.toISOString());
             if (endDate) queryParams.append("end", endDate.toISOString());
-            if(searchQuery) queryParams.append("q", searchQuery);
-    
+            if(searchQuery) queryParams.append("keyword", searchQuery.qParam);
+            if(searchQuery) queryParams.append("priority", searchQuery.priority.toString());
+            if(searchQuery) queryParams.append("category", searchQuery.cat.toString());
+            
             console.log("Query Params", queryParams);
     
             // Construct the complete URL with query parameters
