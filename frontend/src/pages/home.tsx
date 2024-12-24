@@ -1,9 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import "../App.css";
 import { useForm, SubmitHandler } from "react-hook-form"
 import { companyLogo } from "@/constants/images";
-import { CalendarCheck, CalendarFoldIcon, PlusCircle, Tags } from "lucide-react";
+import { 
+  Tags, 
+  PlusCircle, 
+  CalendarCheck, 
+  CalendarFoldIcon, 
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogTitle,
@@ -15,12 +18,22 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog"
 import TodoCreationCard from "@/components/ui/todo-creation-card";
-import { useContext, useEffect, useState } from "react";
+import { 
+  useContext, 
+  useEffect, 
+  useState 
+} from "react";
 import useTodo from "@/hooks/useTodo";
 import { toast } from "@/hooks/use-toast";
 import TodoSection from "@/components/ui/todo-section";
-import { DndContext, DragEndEvent } from "@dnd-kit/core";
-import { ColumnType, queryType, TasksType } from "@/constants/types/todo-type";
+import { 
+  DndContext, 
+  DragEndEvent 
+} from "@dnd-kit/core";
+import { 
+  queryType, 
+  TasksType,  
+} from "@/constants/types/todo-type";
 import { Input } from "@/components/ui/input";
 import useDebounce from "@/hooks/useDebounce";
 import {
@@ -49,27 +62,27 @@ import {
 import { Label } from "@/components/ui/label";
 import AuthContext from "@/context/authContext";
 import { fetchedLabelType } from "@/constants/types/label-tyep";
+import { COLUMNS } from "@/constants/components";
 
 type Inputs = {
   label: string;
 }
 
-
 const Home = () => {
-  const displayName = window.localStorage.getItem("user_name");
-  const [todoList, setTodoList] = useState<TasksType[]>([]);
-  const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[]>([]);
   const { fetchTodo, editTodo } = useTodo();
+  const [isOpen, setIsOpen] = useState(false);
   const { createLabel, getLabel } = useLabel();
   const [refresh, setRefresh] = useState(false);
-  const [isOpen, setIsOpen] = useState(false);
+  const [option, setOption] = useState<string>("");
+  const [todoList, setTodoList] = useState<TasksType[]>([]);
+  const displayName = window.localStorage.getItem("user_name");
+  const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[]>([]);
   const [query, setQuery] = useState<queryType>({
     qParam: "",
     priority: 0,
     cat: -1
   });
   const debouncedInputValue = useDebounce(query, 2000);
-  const [option, setOption] = useState<string>("");
   const {
     register,
     handleSubmit,
@@ -81,8 +94,6 @@ const Home = () => {
   async function handleFetchData(searchQuery?: queryType) {
     try {
       const fetchedTodos = await fetchTodo(searchQuery);
-      console.log("=========Fetch todo from home=============");
-      console.log(fetchedTodos);
       setTodoList(fetchedTodos);
     } catch (error) {
       toast({
@@ -180,14 +191,6 @@ const Home = () => {
     handleFetchData(debouncedInputValue);
   }, [debouncedInputValue]);
 
-
-
-
-  const COLUMNS: ColumnType[] = [
-    { id: 'incomplete', title: 'To Do' },
-    { id: 'progress', title: 'In Progress' },
-    { id: 'complete', title: 'Done' }
-  ];
 
 
   const handleSearchByFilter = () => {
@@ -335,10 +338,22 @@ const Home = () => {
                     }))
                   }}>
                     <SelectTrigger className="w-[80px]">
-                      <SelectValue placeholder="Label" onChange={(e) => { console.log(e.currentTarget.textContent); }} />
+                      <SelectValue 
+                        placeholder="Label" 
+                        onChange={(e) => { console.log(e.currentTarget.textContent);
+                      }} 
+                      />
                     </SelectTrigger>
                     <SelectContent >
-                      {fetchedLabels.map((e:any,_)=>(<SelectItem key={e.id} value={e.id?.toString()}>{e.name}</SelectItem>))}
+                      {fetchedLabels.map((e:fetchedLabelType)=>(
+                        <SelectItem 
+                          key={e.id} 
+                          value={e.id?.toString() || ""}
+                        >
+                          {e.name}
+                        </SelectItem>
+                      ))
+                      }
                     </SelectContent>
                   </Select>
                 )}

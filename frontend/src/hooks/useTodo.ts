@@ -78,7 +78,7 @@ const useTodo = () => {
 
 
 
-    const fetchTodo = async (searchQuery={qParam:"",priority:0,cat:0}) => {
+    const fetchTodo = async (searchQuery={qParam:"",priority:0,cat:-1}) => {
         setLoading(true);
         try {
             // Build the query string dynamically based on provided start and end
@@ -93,6 +93,7 @@ const useTodo = () => {
     
             // Construct the complete URL with query parameters
             const url = `${BASE_URL}/view_todo${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+            // const url = `${BASE_URL}/view_todo${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
             const response = await axios.get(url, {
                 headers: {
                     'Content-Type': 'application/json',
@@ -102,7 +103,7 @@ const useTodo = () => {
     
             // Check for successful response
             if (response.status === 200 || response.status === 201) {
-                console.log("Fetched todos:", response.data);
+                console.log("Fetched todos:", response.data, url);
                 toast({
                     title: "Successfully fetched todos!",
                     variant: "default"
