@@ -71,6 +71,7 @@ type Inputs = {
 const Home = () => {
   const { fetchTodo, editTodo } = useTodo();
   const [isOpen, setIsOpen] = useState(false);
+  const [sheetOpen, setSheetOpen]=useState(false);
   const { createLabel, getLabel } = useLabel();
   const [refresh, setRefresh] = useState(false);
   const [option, setOption] = useState<string>("");
@@ -88,7 +89,10 @@ const Home = () => {
     handleSubmit,
     formState: { errors },
   } = useForm<Inputs>()
-  const onSubmit: SubmitHandler<Inputs> = (data) => onCreateLabel({ label: data.label });
+  const onSubmit: SubmitHandler<Inputs> = (data) =>{
+    onCreateLabel({ label: data.label })
+    setSheetOpen((sheetOpen)=>!sheetOpen);
+  };
 
 
   async function handleFetchData(searchQuery?: queryType) {
@@ -216,13 +220,13 @@ const Home = () => {
       </div>
 
 
-      {todoList.length + 1 &&
+      {todoList.length + 1 && fetchLabels.length + 1 &&
         (
           <div className="flex flex-col items-center justify-start border-2 border-slate-500 rounded-lg h-[85%] px-5">
             <div className="flex flex-row items-center justify-start w-full my-3">
-              <Sheet>
+              <Sheet open={sheetOpen} onOpenChange={()=>{setSheetOpen((sheetOpen)=>!sheetOpen)}}>
                 <SheetTrigger className="mr-2 text-xs py-1">
-                  <Tags color="white" />
+                  <Tags color="white"/>
                 </SheetTrigger>
                 <SheetContent>
                   <SheetHeader>
@@ -345,7 +349,7 @@ const Home = () => {
                       />
                     </SelectTrigger>
                     <SelectContent >
-                      {fetchedLabels.map((e:fetchedLabelType)=>(
+                      {fetchedLabels?.map((e:fetchedLabelType)=>(
                         <SelectItem 
                           key={e.id} 
                           value={e.id?.toString() || ""}

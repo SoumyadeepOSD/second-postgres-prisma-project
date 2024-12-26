@@ -261,7 +261,7 @@ const TodoCard = ({ task, onTodoChange, onDeleteSuccess }: { task: TasksType, on
           <div className="w-full grid grid-cols-5 items-start gap-2">
             {
               task.labels?.map((l, i) =>
-              (<div key={i || l.id} className="text-xs font-semibold text-blue-200 bg-gradient-to-br from-blue-700 to-blue-950 border-[1px] border-white px-2 py-1 rounded-xl">
+              (<div key={i || l.id} className="text-xs font-semibold text-blue-200 bg-gradient-to-br from-blue-700 to-blue-950 border-[1px] border-white px-2 py-1 rounded-xl w-fit">
                 {l.name}
               </div>)
               )
