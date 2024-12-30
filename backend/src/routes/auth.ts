@@ -13,7 +13,8 @@ const authRoutes = [
                 headers: headerValidators.userValid,
                 params: userParamValidators.userValid
             },
-            handler: tokenValidHandler
+            handler: tokenValidHandler,
+            auth:false
         }
     },
     {
@@ -22,10 +23,10 @@ const authRoutes = [
         options: {
             tags: ["api", "USER"],
             validate: {
-                headers: headerValidators.userLogin,
                 payload: userPayloadValidators.userLogin,
             },
-            handler: userLoginHandler
+            handler: userLoginHandler,
+            auth:false
         }
     },
     {
@@ -36,7 +37,8 @@ const authRoutes = [
             validate: {
                 payload: userPayloadValidators.userSignup
             },
-            handler: userSignupHandler
+            handler: userSignupHandler,
+            auth:false
         }
     },
     {
@@ -44,7 +46,8 @@ const authRoutes = [
         path: authUserRoutes.FORGOTPASSWORD,
         options: {
             tags: ["api", "USER"],
-            handler: userForgotPasswordHandler
+            handler: userForgotPasswordHandler,
+            auth:false
         }
     },
     {
@@ -63,7 +66,8 @@ const authRoutes = [
         path: authUserRoutes.VIEWUSER,
         options: {
             tags: ["api", "USER"],
-            handler: fetchAllUsersHandler
+            handler: fetchAllUsersHandler,
+            auth:false
         }
     }
 ];

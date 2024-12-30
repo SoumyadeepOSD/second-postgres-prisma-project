@@ -14,6 +14,7 @@ import {
 import { useEffect, useState } from "react";
 import useLabel from "@/hooks/useLabel";
 import { fetchedLabelType } from "@/constants/types/label-tyep";
+import { X } from "lucide-react";
 
 type Inputs = {
     title: string;
@@ -24,11 +25,17 @@ type TodoCreationCardProps = {
     onCreateSuccess: () => void; // Notify parent when todo is created
 };
 
+
 const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
     const { createTodo } = useTodo();
     const { getLabel } = useLabel();
     const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[] | null>(null); // Allow for null state
     const [selectedLabels, setSelectedLabels] = useState<number[]>([]);
+    function labelIdToLabelName(id: number) {
+        const matchedLabels = fetchedLabels?.filter(e => e.id === +id).map(elem => elem.name);
+        return matchedLabels;
+    }
+
     const {
         register,
         handleSubmit,
@@ -54,6 +61,12 @@ const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
             });
         }
     };
+    
+    function handleRemoveLabels(index:number){
+        setSelectedLabels((prevSelectedLabels) =>
+            prevSelectedLabels.filter((_, i) => i !== index)
+        );
+    }
 
     const fetchLabels = async () => {
         try {
@@ -102,11 +115,28 @@ const TodoCreationCard = ({ onCreateSuccess }: TodoCreationCardProps) => {
                 </SelectContent>
             </Select>
 
-            <p className="text-black text-xs">All selected labels:</p>
+            {selectedLabels.length ? (<p className="text-black text-xs">All selected labels:</p>):(<></>)}
             <p className="text-black text-xs">
-                {JSON.stringify(selectedLabels.map((e) => +e))}
+                <div>
+                    {
+                        selectedLabels.map((e) => labelIdToLabelName(e)).map((elem, index) => (
+                            <div
+                                key={index}
+                                className="text-blue-200 font-bold bg-blue-950 border-2 border-slate-300 rounded-3xl px-3 py-2 w-fit flex flex-row items-center justify-evenly gap-2"
+                            >
+                                {elem}
+                                <X 
+                                    size={15} 
+                                    className="bg-red-500 text-white rounded-full border-2 border-white hover:cursor-pointer" 
+                                    onClick={()=>{handleRemoveLabels(index)}}
+                                />
+                            </div>
+                        )
+                        )
+                    }
+                </div>
             </p>
-            
+
             <Button type="submit">Create</Button>
         </form>
     );

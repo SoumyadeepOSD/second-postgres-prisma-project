@@ -1,8 +1,7 @@
 import { todoRoutes } from "../constant/route";
 import { todoCreateHandler, todoReadHandler, todoUpdateHandler, todoDeleteHandler, todoFetchAllHandler } from "../handler/todo";
-import { httpMethods } from "../methods";
-import authMiddleware from "../middleware/auth-middleware";
 import { todoHeaderValidators, todoPayloadValidators, todoParamsValidators } from "../validations/todo";
+import { httpMethods } from "../methods";
 
 const todosRoutes = [
     {
@@ -10,12 +9,11 @@ const todosRoutes = [
         path: todoRoutes.CREATE,
         options: {
             tags: ["api", "TODO"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: todoHeaderValidators.userValid,
                 payload: todoPayloadValidators.todoCreate,
             },
-            handler: todoCreateHandler
+            handler: todoCreateHandler,
         }
     },
     {
@@ -23,7 +21,6 @@ const todosRoutes = [
         path: todoRoutes.VIEWTODO,
         options: {
             tags: ["api", "TODO"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: todoHeaderValidators.userValid,
             },
@@ -35,7 +32,6 @@ const todosRoutes = [
         path: todoRoutes.UPDATETODO,
         options: {
             tags: ["api", "TODO"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoUpdate,
@@ -49,7 +45,6 @@ const todosRoutes = [
         path: todoRoutes.DELETETODO,
         options: {
             tags: ["api", "TODO"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoDelete,

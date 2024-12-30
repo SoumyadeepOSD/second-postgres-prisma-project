@@ -6,7 +6,6 @@ import {
     labelUpdateHandler,
     labelDeleteHandler
 } from "../handler/label";
-import authMiddleware from "../middleware/auth-middleware";
 import {
     labelHeaderValidators,
     labelPayloadValidators,
@@ -19,7 +18,6 @@ const labelsRoutes = [
         path: labelRoutes.CREATE,
         options: {
             tags: ["api", "LABEL"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: labelHeaderValidators.userValid,
                 payload: labelPayloadValidators.labelCreate,
@@ -32,7 +30,6 @@ const labelsRoutes = [
         path: labelRoutes.VIEWLABEL,
         options: {
             tags: ["api", "LABEL"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: labelHeaderValidators.userValid,
             },
@@ -44,7 +41,6 @@ const labelsRoutes = [
         path: labelRoutes.UPDATELABEL,
         options: {
             tags: ["api", "LABEL"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: labelHeaderValidators.userValid,
                 params: labelParamsValidators.labelUpdate,
@@ -58,7 +54,6 @@ const labelsRoutes = [
         path: labelRoutes.DELETELABEL,
         options: {
             tags: ["api", "LABEL"],
-            pre: [{ method: authMiddleware }],
             validate: {
                 headers: labelHeaderValidators.userValid,
                 params: labelParamsValidators.labelDelete,

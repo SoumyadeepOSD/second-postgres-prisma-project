@@ -43,20 +43,20 @@ const Signup = () => {
                             <div className="flex flex-col items-start space-y-1.5">
                                 <Label htmlFor="email">First Name</Label>
                                 <Input
-                                    id="email"
+                                    id="first_name"
                                     placeholder="Put your First Name"
                                     {...register("firstName", { required: true })}
                                 />
-                                {errors.email && <span className="text-red-500">FirstName is required</span>}
+                                {errors.firstName && <span className="text-red-500">FirstName is required</span>}
                             </div>
                             <div className="flex flex-col items-start space-y-1.5">
                                 <Label htmlFor="password">Last Name</Label>
                                 <Input
-                                    id="lastName"
+                                    id="last_name"
                                     placeholder="Put your Last Name"
                                     {...register("lastName", { required: true })}
                                 />
-                                {errors.password && <span className="text-red-500">LastName is required</span>}
+                                {errors.lastName && <span className="text-red-500">LastName is required</span>}
                             </div>
                             <div className="flex flex-col items-start space-y-1.5">
                                 <Label htmlFor="email">Email</Label>

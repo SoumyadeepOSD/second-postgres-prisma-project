@@ -1,6 +1,7 @@
 import axios from "axios";
 import { toast } from "./use-toast";
 import { useState } from "react";
+import Client from "@/constants/config";
 
 
 const BASE_URL = import.meta.env.VITE_BASE_URL!;
@@ -15,7 +16,7 @@ const useLabel = () => {
             const payloadBody = {
                 name: name
             };
-            const response = await axios.post(URL, payloadBody,
+            const response = await Client.post(URL, payloadBody,
                 {
                     headers:
                     {

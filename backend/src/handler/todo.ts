@@ -100,8 +100,9 @@ const todoReadHandler = async (req: any, h: any) => {
             whereClause.priority = +priority;
         }
 
-        if (category!="-1") {
+        if (category!="-1" || isNaN(category)) {
             const categoryId = +category; // Ensure category is a number
+            if(typeof(categoryId)==="number")
             whereClause.labels = {
                 some: {
                     id: categoryId, // Match category with label id

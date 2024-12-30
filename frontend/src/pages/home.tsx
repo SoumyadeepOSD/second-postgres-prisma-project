@@ -1,11 +1,12 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import "../App.css";
 import { useForm, SubmitHandler } from "react-hook-form"
 import { companyLogo } from "@/constants/images";
-import { 
-  Tags, 
-  PlusCircle, 
-  CalendarCheck, 
-  CalendarFoldIcon, 
+import {
+  Tags,
+  PlusCircle,
+  CalendarCheck,
+  CalendarFoldIcon,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -18,21 +19,21 @@ import {
   AlertDialogDescription,
 } from "@/components/ui/alert-dialog"
 import TodoCreationCard from "@/components/ui/todo-creation-card";
-import { 
-  useContext, 
-  useEffect, 
-  useState 
+import {
+  useContext,
+  useEffect,
+  useState
 } from "react";
 import useTodo from "@/hooks/useTodo";
 import { toast } from "@/hooks/use-toast";
 import TodoSection from "@/components/ui/todo-section";
-import { 
-  DndContext, 
-  DragEndEvent 
+import {
+  DndContext,
+  DragEndEvent
 } from "@dnd-kit/core";
-import { 
-  queryType, 
-  TasksType,  
+import {
+  queryType,
+  TasksType,
 } from "@/constants/types/todo-type";
 import { Input } from "@/components/ui/input";
 import useDebounce from "@/hooks/useDebounce";
@@ -71,12 +72,11 @@ type Inputs = {
 const Home = () => {
   const { fetchTodo, editTodo } = useTodo();
   const [isOpen, setIsOpen] = useState(false);
-  const [sheetOpen, setSheetOpen]=useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
   const { createLabel, getLabel } = useLabel();
   const [refresh, setRefresh] = useState(false);
   const [option, setOption] = useState<string>("");
   const [todoList, setTodoList] = useState<TasksType[]>([]);
-  const displayName = window.localStorage.getItem("user_name");
   const [fetchedLabels, setFetchedLabels] = useState<fetchedLabelType[]>([]);
   const [query, setQuery] = useState<queryType>({
     qParam: "",
@@ -87,11 +87,13 @@ const Home = () => {
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors },
   } = useForm<Inputs>()
-  const onSubmit: SubmitHandler<Inputs> = (data) =>{
-    onCreateLabel({ label: data.label })
-    setSheetOpen((sheetOpen)=>!sheetOpen);
+  const onSubmit: SubmitHandler<Inputs> = (data) => {
+    onCreateLabel({ label: data.label });
+    reset();
+    setSheetOpen((sheetOpen) => !sheetOpen);
   };
 
 
@@ -201,6 +203,10 @@ const Home = () => {
     handleFetchData();
   }
 
+  const handleLogout = () => {
+    window.localStorage.setItem("access_token", "");
+    window.location.href = "/login";
+  }
 
   const { startDate, endDate, setStartDate, setEndDate } = useContext(AuthContext);
 
@@ -214,9 +220,7 @@ const Home = () => {
       <p className="text-white text-xs">DQ {debouncedInputValue.qParam}</p>
       <div className="flex flex-row items-center justify-between px-2">
         <img src={companyLogo} height={70} width={70} />
-        {displayName && (
-          <p className="text-lg font-bold text-white">Hi {displayName} 👋🏻</p>
-        )}
+        <Button onClick={handleLogout} className="text-xs font-semibold text-white">Logout</Button>
       </div>
 
 
@@ -224,9 +228,12 @@ const Home = () => {
         (
           <div className="flex flex-col items-center justify-start border-2 border-slate-500 rounded-lg h-[85%] px-5">
             <div className="flex flex-row items-center justify-start w-full my-3">
-              <Sheet open={sheetOpen} onOpenChange={()=>{setSheetOpen((sheetOpen)=>!sheetOpen)}}>
+              <Sheet open={sheetOpen} onOpenChange={() => {
+                setSheetOpen((sheetOpen) => !sheetOpen);
+                reset();
+              }}>
                 <SheetTrigger className="mr-2 text-xs py-1">
-                  <Tags color="white"/>
+                  <Tags color="white" />
                 </SheetTrigger>
                 <SheetContent>
                   <SheetHeader>
@@ -342,16 +349,17 @@ const Home = () => {
                     }))
                   }}>
                     <SelectTrigger className="w-[80px]">
-                      <SelectValue 
-                        placeholder="Label" 
-                        onChange={(e) => { console.log(e.currentTarget.textContent);
-                      }} 
+                      <SelectValue
+                        placeholder="Label"
+                        onChange={(e) => {
+                          console.log(e.currentTarget.textContent);
+                        }}
                       />
                     </SelectTrigger>
                     <SelectContent >
-                      {fetchedLabels?.map((e:fetchedLabelType)=>(
-                        <SelectItem 
-                          key={e.id} 
+                      {fetchedLabels?.map((e: fetchedLabelType) => (
+                        <SelectItem
+                          key={e.id}
                           value={e.id?.toString() || ""}
                         >
                           {e.name}

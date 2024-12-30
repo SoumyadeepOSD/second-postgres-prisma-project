@@ -4,9 +4,9 @@ import { Navigate } from "react-router-dom";
 
 
 const AuthProvider = ({ children }:{children:ReactNode}) => {
-  const refreshToken = window.localStorage.getItem("refresh_token");
+  const accessToken = window.localStorage.getItem("access_token");
   
-  if (!refreshToken) {
+  if (!accessToken) {
     return <Navigate to="/login" />;
   }
 
@@ -14,3 +14,4 @@ const AuthProvider = ({ children }:{children:ReactNode}) => {
 };
 
 export default AuthProvider;
+

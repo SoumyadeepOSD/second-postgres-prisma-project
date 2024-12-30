@@ -16,5 +16,9 @@ const priorityMapping = ({priority}:{priority:number})=>{
     }
     return actualPriority;
 }
-
-export {priorityMapping};
+const handleLogout = () => {
+    window.localStorage.removeItem("access_token");
+    window.localStorage.removeItem("data");
+    window.location.href="/login";    
+}
+export {priorityMapping, handleLogout};

@@ -1,4 +1,4 @@
-import { Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes } from "react-router-dom";
 import { useState } from "react";
 
 import './App.css';
@@ -15,6 +15,7 @@ function App() {
   const [refreshToken, setRefreshToken] = useState<string>("");
   const [startDate, setStartDate] = useState<Date | undefined>();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const acToken = window.localStorage.getItem("access_token");
 
   return (
     <div>
@@ -32,7 +33,7 @@ function App() {
       >
         <Routes>
           <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
+          <Route path="/login" element={!acToken ? <Login /> : <Navigate to="/home" replace />} />
           <Route path="/signup" element={<Signup />} />
           <Route path="/testing" element={<Testing />} />
           <Route
@@ -42,7 +43,7 @@ function App() {
                 <Home />
               </AuthProvider>
             }
-          />
+            />
         </Routes>
       </AuthContext.Provider>
     </div>

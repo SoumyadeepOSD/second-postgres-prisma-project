@@ -4,155 +4,120 @@ const Prisma = new PrismaClient();
 const bcryptJS = require("bcryptjs");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-const REFRESH_TOKEN_EXPIRATION = 3600;
-const ACCESS_TOKEN_EXPIRATION = 1800;
+const REFRESH_TOKEN_EXPIRATION = "24h";
+const ACCESS_TOKEN_EXPIRATION = "1h";
+
 
 
 const userLoginHandler = async (req: any, h: any) => {
     const { email, password } = req.payload;
-    const authHeader = req.headers.authorization;
 
-
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-        return h.response({
-            message: "Invalid or missing Authorization header",
-        }).code(400);
-    }
-
-    const refreshToken = authHeader.split(" ")[1]; // Extract the token
     try {
-        // If refresh token is there 
-        if (refreshToken) {
+        // Step 1: Validate email and password
+        if (!email || !password) {
+            return h.response({
+                message: "Email and password are required",
+            }).code(400);
+        }
+
+        // Step 2: Check if the user exists
+        const existingUser = await Prisma.user.findUnique({
+            where: { email },
+        });
+
+        if (!existingUser) {
+            return h.response({
+                message: "User does not exist",
+            }).code(401);
+        }
+
+        // Step 3: Validate the password
+        const isPasswordValid = bcryptJS.compareSync(password, existingUser.password);
+        if (!isPasswordValid) {
+            return h.response({
+                message: "Invalid password",
+            }).code(401);
+        }
+
+        // Step 4: Check if a refresh token exists in the database
+        let newAccessToken;
+        if (existingUser.refreshToken) {
             try {
-                const decoded = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
-                const existingUser = await Prisma.user.findUnique({
-                    where: {
-                        id: decoded.id
-                    }
-                });
-
-                if (!existingUser || existingUser.refreshToken !== refreshToken) {
-                    return h.response({
-                        message: "Invalid/expired refresh token"
-                    }).code(401);
-                }
-
-                // New Accesstoken
-                const newAccessToken = jwt.sign(
-                    { id: existingUser.id, email: existingUser.email },
+                const verifiedToken = jwt.verify(existingUser.refreshToken, JWT_REFRESH_SECRET);
+                // Step 5a: Generate a new access token from a valid refresh token
+                newAccessToken = jwt.sign(
+                    { id: verifiedToken.id, email: verifiedToken.email },
                     JWT_SECRET,
                     { expiresIn: ACCESS_TOKEN_EXPIRATION }
                 );
 
-                await Prisma.user.update({
-                    where: {
-                        id: existingUser.id
-                    },
-                    data: {
-                        accessToken: newAccessToken,
-                    }
-                });
-
                 return h.response({
-                    message: "Access token refreshed successfully",
+                    id: verifiedToken.id,
                     accessToken: newAccessToken,
-                    refreshToken: refreshToken
                 }).code(200);
-            } catch (error: any) {
-                if (error.name === 'TokenExpiredError') {
-                    console.log("Access token expired, falling back to email/password login.");
-                } else {
-                    return h.response({ message: "Invalid refresh token" }).code(401);
+            } catch (error:any) {
+                if (error.name !== "TokenExpiredError") {
+                    return h.response({
+                        message: "Invalid refresh token",
+                    }).code(401);
                 }
             }
-
         }
 
+        // Step 5b: Create and store a new refresh token if the existing one is invalid or not present
+        const newRefreshToken = jwt.sign(
+            { id: existingUser.id, email: existingUser.email },
+            JWT_REFRESH_SECRET,
+            { expiresIn: REFRESH_TOKEN_EXPIRATION }
+        );
 
-        // If email and password is there
-        if (email && password) {
-            const user = await Prisma.user.findUnique({
-                where: {
-                    email: email
-                }
-            });
+        await Prisma.user.update({
+            where: { id: existingUser.id },
+            data: { refreshToken: newRefreshToken },
+        });
 
-            if (!user) {
-                return h.response({
-                    message: "User not found"
-                }).code(404);
-            }
+        // Step 6: Generate a new access token
+        newAccessToken = jwt.sign(
+            { id: existingUser.id, email: existingUser.email },
+            JWT_SECRET,
+            { expiresIn: ACCESS_TOKEN_EXPIRATION }
+        );
 
-            const isPasswordValid = bcryptJS.compareSync(password, user.password);
-            if (!isPasswordValid) {
-                return h.response({
-                    message: "Password did not match"
-                }).code(401);
-            }
-
-            const accessToken = jwt.sign(
-                { id: user.id, email: user.email },
-                JWT_SECRET,
-                { expiresIn: ACCESS_TOKEN_EXPIRATION }
-            );
-
-            let refreshToken = user.refreshToken;
-
-            if (!refreshToken) {
-                refreshToken = jwt.sign(
-                    { id: user.id, email: user.email },
-                    JWT_REFRESH_SECRET,
-                    { expiresIn: REFRESH_TOKEN_EXPIRATION }
-                );
-            }
-
-
-            await Prisma.user.update({
-                where: {
-                    id: user.id
-                },
-                data: {
-                    refreshToken: refreshToken
-                }
-            });
-
-            return h.response({
-                message: "Login Successful",
-                accessToken: accessToken,
-                refreshToken: refreshToken
-            }).code(200);
-        }
-    } catch (error: any) {
-        console.error("Login error:", error);
         return h.response({
-            message: "Failed to process login",
-            error: error.message || "Unknown error",
+            id: existingUser.id,
+            accessToken: newAccessToken,
+        }).code(200);
+    } catch (error: any) {
+        return h.response({
+            message: "An error occurred during login",
+            error: error.message || error,
         }).code(500);
     }
-}
+};
+
 
 
 const tokenValidHandler = async (req: any, h: any) => {
     try {
         const authHeader = req.headers.authorization;
-        const {tokenType} = req.params;
+        const { tokenType } = req.params;
         if (!authHeader || !authHeader.startsWith("Bearer ")) {
             return h.response({
                 message: "Missing or invalid Authorization header",
             }).code(400);
-        }    
+        }
         const token = authHeader.split(" ")[1];
-        const decoded = jwt.verify(token, tokenType==="refresh" ? JWT_REFRESH_SECRET : JWT_SECRET); // Ensures expiration is checked
+        const decoded = jwt.verify(token, tokenType === "refresh" ? JWT_REFRESH_SECRET : JWT_SECRET); // Ensures expiration is checked
         console.log(decoded);
         return h.response({
-            data:decoded
+            data: decoded
         });
     } catch (error) {
         return h.response({
             message: "Invalid token",
         }).code(401);
     }
-    
+
 };
 
 
@@ -173,7 +138,6 @@ const userSignupHandler = async (req: any, h: any) => {
         const salt = bcryptJS.genSaltSync(10);
         const hashedPassword = bcryptJS.hashSync(password, salt);
 
-
         const newUser = await Prisma.user.create({
             data: {
                 first_name: firstName,
@@ -185,16 +149,9 @@ const userSignupHandler = async (req: any, h: any) => {
             }
         });
 
-        // Generate Access Token
-        const accessToken = jwt.sign(
-            { id: newUser.id, email: newUser.email },
-            JWT_SECRET,
-            { expiresIn: ACCESS_TOKEN_EXPIRATION }
-        );
-
         // Generate Refresh Token
         const refreshToken = jwt.sign(
-            { id: newUser.id, email: newUser.email },
+            { id: newUser.id, email: newUser.email, password: newUser.password },
             JWT_REFRESH_SECRET,
             { expiresIn: REFRESH_TOKEN_EXPIRATION }
         );
@@ -205,7 +162,6 @@ const userSignupHandler = async (req: any, h: any) => {
             },
             data: {
                 refreshToken: refreshToken,
-                accessToken: accessToken
             }
         });
 
@@ -219,8 +175,7 @@ const userSignupHandler = async (req: any, h: any) => {
                 firstName: newUser.firstName,
                 secondName: newUser.secondName,
                 email: newUser.email,
-                refreshToken: refreshToken,
-                accessToken: accessToken
+                refreshToken: newUser.refreshToken,
             }
         }).code(201);
     } catch (error) {

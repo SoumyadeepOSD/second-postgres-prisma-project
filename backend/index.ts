@@ -2,11 +2,13 @@ import authRoutes from "./src/routes/auth";
 import labelsRoutes from "./src/routes/label";
 import todosRoutes from "./src/routes/todo";
 import swaggerOptions from "./src/config/swagger";
-const HapiSwagger = require("hapi-swagger");
+import HapiSwagger from "hapi-swagger";
+import authMiddleware from "./src/middleware/auth-middleware";
 const basicAuth = require("basic-auth");
 const Vision = require("@hapi/vision");
 const Inert = require("@hapi/inert");
 const Hapi = require("@hapi/hapi");
+const Jwt = require('@hapi/jwt');
 require("dotenv").config();
 
 const PORT = process.env.PORT;
@@ -30,9 +32,17 @@ const init = async () => {
         {
             plugin: HapiSwagger,
             options: swaggerOptions
-        }
+        },
+        Jwt
     ]);
 
+    server.auth.strategy('jwt', 'jwt', {
+        keys: process.env.JWT_SECRET,
+        verify: false,
+        validate: authMiddleware
+    });
+
+    server.auth.default('jwt');
     server.route([...authRoutes, ...labelsRoutes, ...todosRoutes]);
 
     // Basic authentication middleware to protect Swagger docs

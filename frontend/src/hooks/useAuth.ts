@@ -1,92 +1,75 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import axios from "axios";
+
+import AuthContext from "@/context/authContext";
+import { useContext, useState } from "react";
+import Client from "@/constants/config";
 import { useToast } from "./use-toast";
-import { useState } from "react";
 
 const useAuth = () => {
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
-    const BASE_URL = import.meta.env.VITE_BASE_URL!;
+    const { setAccessToken } = useContext(AuthContext);
+
     const handleLogin = async ({ email, password }: { email: string; password: string; }) => {
         setLoading(true);
         try {
-            const refresh_token = window.localStorage.getItem("refresh_token");
-            const URL = `${BASE_URL}/login`;
-            const payloadBody = {
-                email: email,
-                password: password
-            };
-            const config = {
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${refresh_token}`, // Add token here if needed
-                },
-            };
-            const response = await axios.post(URL, payloadBody, config);
+            const URL = "/login"; // Base URL is already set in the client
+            const payloadBody = { email, password };
+            const response = await Client.post(URL, payloadBody);
+
             if (response.status === 201 || response.status === 200) {
                 console.log(response.data);
                 toast({
                     title: "Login Successful",
                     variant: "default",
-                    description: response.data
+                    description: response.data.message,
                 });
-                setLoading(false);
-                window.localStorage.setItem("refresh_token", response.data.refreshToken!)
-                window.localStorage.setItem("access_token", response.data.accessToken!)
+                setAccessToken(response?.data?.accessToken);
+                window.localStorage.setItem("data", JSON.stringify(response.data));
+                window.localStorage.setItem("access_token", response?.data?.accessToken);
                 window.location.href = "/home";
             }
-            setLoading(false);
-            //^Log the signin data
-            console.log(response.data);
         } catch (error: unknown) {
-            setLoading(false);
-            console.log(`=================Error is ${error}`);
+            console.error(`Login Error:`, error);
             toast({
                 title: "Login Failed",
                 variant: "destructive",
-                description: `Can't logged in!`
+                description: "Can't log in!",
             });
+        } finally {
+            setLoading(false);
         }
     };
-
 
     const handleSignup = async ({ email, password, firstName, lastName }: { email: string; password: string; firstName: string; lastName: string }) => {
         setLoading(true);
         try {
-            const URL = `${BASE_URL}/signup`;
-            const payloadBody = {
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                password: password
-            };
-            const response = await axios.post(URL, payloadBody);
+            const URL = "/signup"; // Base URL is already set in the client
+            const payloadBody = { firstName, lastName, email, password };
+            const response = await Client.post(URL, payloadBody);
+
             if (response.status === 201 || response.status === 200) {
                 console.log(response.data);
                 toast({
                     title: "Signup Successful",
                     variant: "default",
-                    description: response.data
+                    description: response.data,
                 });
-                setLoading(false);
-                //^Log the signup data
-                console.log(response.data);
-                window.localStorage.setItem("access_token", response.data.user.accessToken!);
-                window.localStorage.setItem("user_name", firstName);
-                window.localStorage.setItem("refresh_token", response.data.user.refreshToken!);
                 window.location.href = "/login";
             }
-            setLoading(false);
         } catch (error: unknown) {
-            setLoading(false);
+            console.error(`Signup Error:`, error);
             toast({
-                title: "Login Failed",
+                title: "Signup Failed",
                 variant: "destructive",
-                description: `Can't logged in!`
+                description: "Can't sign up!",
             });
+        } finally {
+            setLoading(false);
         }
     };
+
     return { handleLogin, handleSignup, loading, setLoading };
-}
+};
 
 export default useAuth;
