@@ -19,10 +19,13 @@
     "@types/jsonwebtoken": "^9.0.7",
     "basic-auth": "^2.0.1",
     "bcryptjs": "^2.4.3",
+    "bull": "^4.16.5",
+    "bullmq": "^5.34.6",
     "dotenv": "^16.4.7",
     "hapi-geo-locate": "^4.1.1",
     "hapi-swagger": "^17.3.2",
     "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.16",
     "nodemon": "^3.1.7",
     "prisma": "^6.0.1"
   },

@@ -9,6 +9,9 @@ import Landing from "./pages/landing";
 import AuthContext from "./context/authContext";
 import AuthProvider from "./provider/authProvider";
 import Testing from "./pages/testing";
+import ForgetPassword from "./pages/forget-password";
+import ResetPassword from "./pages/reset-password";
+import VerifyToken from "./pages/verify-token";
 
 function App() {
   const [accessToken, setAccessToken] = useState<string>("");
@@ -35,7 +38,11 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={!acToken ? <Login /> : <Navigate to="/home" replace />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/forget-password" element={<ForgetPassword />} />
+          <Route path="/verify-token" element={<VerifyToken />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/testing" element={<Testing />} />
+          <Route path="/notify-email" element={<Testing />} /> 
           <Route
             path="/home"
             element={
@@ -43,7 +50,7 @@ function App() {
                 <Home />
               </AuthProvider>
             }
-            />
+          />
         </Routes>
       </AuthContext.Provider>
     </div>

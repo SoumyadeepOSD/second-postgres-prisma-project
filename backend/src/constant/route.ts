@@ -3,6 +3,8 @@ export const authUserRoutes = {
     LOGIN:"/login",
     VALIDITY:"/valid/{tokenType}",
     FORGOTPASSWORD: "/forgot-password",
+    RESETTOKEN: "/verify-reset-token",
+    RESETPASSWORD: "/reset-password",
     DELETEUSER:"/delete",
     VIEWUSER:"/view"
 };

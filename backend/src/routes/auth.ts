@@ -1,7 +1,7 @@
 import { httpMethods } from "../methods";
 import { authUserRoutes } from "../constant/route";
 import { headerValidators, userParamValidators, userPayloadValidators } from "../validations/user";
-import { fetchAllUsersHandler, tokenValidHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userSignupHandler } from "../handler/user";
+import { fetchAllUsersHandler, tokenValidHandler, userDeleteHandler, userForgotPasswordHandler, userLoginHandler, userResetPasswordHandler, userResetTokenHandler, userSignupHandler } from "../handler/user";
 
 const authRoutes = [
     {
@@ -14,7 +14,7 @@ const authRoutes = [
                 params: userParamValidators.userValid
             },
             handler: tokenValidHandler,
-            auth:false
+            auth: false
         }
     },
     {
@@ -26,7 +26,7 @@ const authRoutes = [
                 payload: userPayloadValidators.userLogin,
             },
             handler: userLoginHandler,
-            auth:false
+            auth: false
         }
     },
     {
@@ -38,7 +38,7 @@ const authRoutes = [
                 payload: userPayloadValidators.userSignup
             },
             handler: userSignupHandler,
-            auth:false
+            auth: false
         }
     },
     {
@@ -46,8 +46,36 @@ const authRoutes = [
         path: authUserRoutes.FORGOTPASSWORD,
         options: {
             tags: ["api", "USER"],
+            validate: {
+                payload: userPayloadValidators.userForgotPassword
+            },
             handler: userForgotPasswordHandler,
-            auth:false
+            auth: false
+        }
+    },
+    {
+        method: httpMethods.POST,
+        path: authUserRoutes.RESETTOKEN,
+        options: {
+            tags: ["api", "USER"],
+            validate: {
+                query: userParamValidators.userResetPassword, // Validate query params
+            },
+            handler: userResetTokenHandler,
+            auth: false,
+        },
+    },    
+    {
+        method: httpMethods.PATCH,
+        path: authUserRoutes.RESETPASSWORD,
+        options: {
+            tags: ["api", "USER"],
+            validate: {
+                payload: userPayloadValidators.userResetPassword,
+                query: userParamValidators.userResetPassword
+            },
+            handler: userResetPasswordHandler,
+            auth: false
         }
     },
     {
@@ -67,7 +95,7 @@ const authRoutes = [
         options: {
             tags: ["api", "USER"],
             handler: fetchAllUsersHandler,
-            auth:false
+            auth: false
         }
     }
 ];

@@ -18,7 +18,6 @@ Client.interceptors.response.use((res: any)=>{
     if(err.status===401){
         handleLogout()
     }
-    
 });
 
 

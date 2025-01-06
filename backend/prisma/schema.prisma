@@ -21,6 +21,7 @@ model User {
   password     String
   accessToken  String
   refreshToken String
+  resetToken   String
   todos        Todo[]
   labels       Label[]
 }
