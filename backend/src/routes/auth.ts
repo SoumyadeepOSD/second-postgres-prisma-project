@@ -86,7 +86,8 @@ const authRoutes = [
             validate: {
                 payload: userPayloadValidators.userDelete,
             },
-            handler: userDeleteHandler
+            handler: userDeleteHandler,
+            auth: false
         }
     },
     {
@@ -95,7 +96,7 @@ const authRoutes = [
         options: {
             tags: ["api", "USER"],
             handler: fetchAllUsersHandler,
-            auth: false
+            auth: false,
         }
     }
 ];

@@ -22,7 +22,8 @@ const labelsRoutes = [
                 headers: labelHeaderValidators.userValid,
                 payload: labelPayloadValidators.labelCreate,
             },
-            handler: labelCreateHandler
+            handler: labelCreateHandler,
+            auth: false
         }
     },
     {
@@ -33,7 +34,8 @@ const labelsRoutes = [
             validate: {
                 headers: labelHeaderValidators.userValid,
             },
-            handler: labelReadHandler
+            handler: labelReadHandler,
+            auth: false
         }
     },
     {
@@ -46,7 +48,8 @@ const labelsRoutes = [
                 params: labelParamsValidators.labelUpdate,
                 payload: labelPayloadValidators.labelUpdate,
             },
-            handler: labelUpdateHandler
+            handler: labelUpdateHandler,
+            auth: false
         }
     },
     {
@@ -58,7 +61,8 @@ const labelsRoutes = [
                 headers: labelHeaderValidators.userValid,
                 params: labelParamsValidators.labelDelete,
             },
-            handler: labelDeleteHandler
+            handler: labelDeleteHandler,
+            auth: false
         }
     }
 ];

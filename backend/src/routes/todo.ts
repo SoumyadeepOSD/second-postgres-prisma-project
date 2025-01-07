@@ -14,6 +14,7 @@ const todosRoutes = [
                 payload: todoPayloadValidators.todoCreate,
             },
             handler: todoCreateHandler,
+            auth: true
         }
     },
     {
@@ -24,7 +25,8 @@ const todosRoutes = [
             validate: {
                 headers: todoHeaderValidators.userValid,
             },
-            handler: todoReadHandler
+            handler: todoReadHandler,
+            auth: true
         }
     },
     {
@@ -37,7 +39,8 @@ const todosRoutes = [
                 params: todoParamsValidators.todoUpdate,
                 payload: todoPayloadValidators.todoUpdate,
             },
-            handler: todoUpdateHandler
+            handler: todoUpdateHandler,
+            auth: true
         }
     },
     {
@@ -49,7 +52,8 @@ const todosRoutes = [
                 headers: todoHeaderValidators.userValid,
                 params: todoParamsValidators.todoDelete,
             },
-            handler: todoDeleteHandler
+            handler: todoDeleteHandler,
+            auth: true
         }
     },
     {
@@ -57,7 +61,8 @@ const todosRoutes = [
         path: todoRoutes.VIEW_ALL,
         options: {
             tags: ["api", "TODO"],
-            handler: todoFetchAllHandler
+            handler: todoFetchAllHandler,
+            auth: true
         }
     },
 ];

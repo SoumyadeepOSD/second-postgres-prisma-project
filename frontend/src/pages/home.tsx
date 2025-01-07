@@ -81,7 +81,7 @@ const Home = () => {
   const [query, setQuery] = useState<queryType>({
     qParam: "",
     priority: 0,
-    cat: -1
+    cat: 0
   });
   const debouncedInputValue = useDebounce(query, 2000);
   const {
