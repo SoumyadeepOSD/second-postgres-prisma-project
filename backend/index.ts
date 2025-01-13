@@ -4,6 +4,7 @@ import todosRoutes from "./src/routes/todo";
 import swaggerOptions from "./src/config/swagger";
 import HapiSwagger from "hapi-swagger";
 import authMiddleware from "./src/middleware/auth-middleware";
+import "./src/config/email/send-mail";
 const basicAuth = require("basic-auth");
 const Vision = require("@hapi/vision");
 const Inert = require("@hapi/inert");

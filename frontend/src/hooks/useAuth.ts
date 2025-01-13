@@ -7,6 +7,8 @@ import { useToast } from "./use-toast";
 
 const useAuth = () => {
     const { toast } = useToast();
+    const [sent, setSent] = useState(false);
+    const [verify, setVerify] = useState(false);
     const [loading, setLoading] = useState(false);
     const { setAccessToken } = useContext(AuthContext);
 
@@ -69,7 +71,86 @@ const useAuth = () => {
         }
     };
 
-    return { handleLogin, handleSignup, loading, setLoading };
+    const handleForgotPassword = async({email}:{email:string})=>{
+        try {
+            const URL = "/forgot-password";
+            const bodyPayload = { email };
+            const response = await Client.post(URL, bodyPayload);
+            if(response.status===201 || response.status===200){
+                toast({
+                    title: "Token has been sent to your email",
+                    variant: "default",
+                });
+                console.log(response.data);
+                setSent(true);            
+            }
+        } catch (error) {
+            toast({
+                title: "Reset Password Creation",
+                variant: "destructive",
+                description: "Can't create reset token!",
+            });
+            setSent(false);
+        }
+    };
+
+    const handleVerifyToken = async({token}:{token:string;})=>{
+        try {
+            const URL = `http://localhost:8000/verify-reset-token?token=${token}`;
+            const response = await Client.post(URL);
+            if(response.status===200 || response.status===201){
+                toast({
+                    title: "Verification done successfully✅",
+                    variant: "default",
+                });
+                setVerify(true);
+                console.log(response.data);
+            }
+        } catch (error) {
+            toast({
+                title: "Reset Token is invalid",
+                variant: "destructive",
+            });
+            setVerify(false);
+        }
+    }
+
+    const handleResetPassword = async({password,token}:{password:string;token:string;})=>{
+        try {
+            const encodedToken = encodeURIComponent(token); // URL encode the token
+            const URL = `/reset-password?token=${encodedToken}`;
+            const bodyPayload = { password };
+            const response = await Client.patch(URL, bodyPayload);
+            if(response.status===201 || response.status===200){
+                toast({
+                    title: "Password has been updated",
+                    variant: "default",
+                });
+                window.localStorage.clear();
+                window.location.href="/login";
+                console.log(response.data);
+            }
+        } catch (error) {
+            toast({
+                title: "Reset Password Creation",
+                variant: "destructive",
+                description: "Can't create reset token!",
+            });
+        }
+    };
+
+
+    return { 
+        handleForgotPassword, 
+        handleResetPassword,
+        handleVerifyToken,
+        handleSignup, 
+        handleLogin, 
+        setLoading,
+        loading, 
+        verify,
+        sent, 
+    };
 };
 
 export default useAuth;

@@ -56,6 +56,7 @@ const Login = () => {
                                 />
                                 {errors.password && <span className="text-red-500">Password is required</span>}
                             </div>
+                            <p className="text-slate-800 text-sm font-semibold">Forgot password? <span onClick={() => { router.replace("/forget-password") }} className="text-blue-700 hover:cursor-pointer">Click here</span></p>
                         </div>
                         <Button type="submit" className={`w-full my-3 ${loading?"animate-pulse":"animate-none"}`}>{loading ? "Loading...":"Sign-in"}</Button>
                         <p className="text-slate-800 text-sm font-semibold">Don't have account? <span onClick={()=>{router.replace("/signup")}} className="text-blue-700 hover:cursor-pointer">Signup</span></p>

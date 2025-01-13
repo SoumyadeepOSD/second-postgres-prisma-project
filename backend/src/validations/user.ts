@@ -28,11 +28,20 @@ export const userPayloadValidators = {
     userDelete: Joi.object({
         id: idValidator,
     }),
+    userForgotPassword: Joi.object({
+        email: emailValidator,
+    }),
+    userResetPassword: Joi.object({
+        password:passwordValidator
+    }),
 };
 
 // Param Validators
 export const userParamValidators = {
     userValid: Joi.object({
         tokenType: stringRequired
+    }),
+    userResetPassword: Joi.object({
+        token: stringRequired
     })
 }

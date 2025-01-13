@@ -2,10 +2,15 @@ const { PrismaClient } = require("@prisma/client");
 const jwt = require("jsonwebtoken");
 const Prisma = new PrismaClient();
 const bcryptJS = require("bcryptjs");
+const {addEmailToQueue} = require("../config/queue/producer");
 const JWT_SECRET = process.env.JWT_SECRET;
 const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 const REFRESH_TOKEN_EXPIRATION = "24h";
 const ACCESS_TOKEN_EXPIRATION = "1h";
+
+
+const JWT_RESET_SECRET = process.env.JWT_RESET_SECRET;
+const RESET_TOKEN_EXPIRATION = "1h";
 
 
 
@@ -55,7 +60,7 @@ const userLoginHandler = async (req: any, h: any) => {
                     id: verifiedToken.id,
                     accessToken: newAccessToken,
                 }).code(200);
-            } catch (error:any) {
+            } catch (error: any) {
                 if (error.name !== "TokenExpiredError") {
                     return h.response({
                         message: "Invalid refresh token",
@@ -189,11 +194,109 @@ const userSignupHandler = async (req: any, h: any) => {
 
 const userForgotPasswordHandler = async (req: any, h: any) => {
     const { email } = req.payload;
-    return {
-        "token": "sdtwtrett35v2345vv4v55t554"
+    try {
+        const existingUser = await Prisma.user.findUnique({
+            where: {
+                email: email
+            }
+        });
+        if (!existingUser) {
+            return h.response({
+                error: "User does not exist",
+            }).code(400);
+        }
+        const resetToken = jwt.sign(
+            { id: existingUser.id, email: existingUser.email, password: existingUser.password },
+            JWT_RESET_SECRET,
+            { expiresIn: RESET_TOKEN_EXPIRATION }
+        );
+        const updatedUser = await Prisma.user.update({
+            where: {
+                id: existingUser.id
+            },
+            data: {
+                resetToken: resetToken,
+            }
+        });
+        await addEmailToQueue(email, "Password Reset Request", updatedUser.resetToken!);
+        return h.response({
+            message: "Successfully generated reset token",
+            resetToken: updatedUser.resetToken!
+        });
+    } catch (error) {
+        console.log(error);
+        return h.response({
+            error: "Failed to generate token",
+        }).code(500);
     }
 }
 
+
+const userResetTokenHandler = async (req: any, h: any) => {
+    try {
+        const { token } = req.query; // Retrieve token from query params
+        const decoded = jwt.verify(token, JWT_RESET_SECRET);
+        if (!decoded) {
+            return h.response({
+                message: "Token expired or invalid token",
+            }).code(500);
+        }
+        return h.response({
+            message: "Token is valid",
+            decoded,
+        }).code(200);
+    } catch (error: any) {
+        if (error.name === "TokenExpiredError") {
+            return h.response({
+                message: "Token has expired",
+            }).code(401); // Unauthorized
+        } else if (error.name === "JsonWebTokenError") {
+            return h.response({
+                message: "Invalid token",
+            }).code(400); // Bad Request
+        }
+        console.error(error);
+        return h.response({
+            message: "An error occurred while verifying the token",
+            error: error.message || "Internal Server Error",
+        }).code(500);
+    }
+};
+
+
+const userResetPasswordHandler = async (req: any, h: any) => {
+    try {
+        const { password } = req.payload;
+        const { token } = req.query;
+        const decoded = jwt.verify(token, JWT_RESET_SECRET);
+        if (!decoded) {
+            return h.response({
+                message: "Token expired or invalid token"
+            }).code(500);
+        }
+        const salt = bcryptJS.genSaltSync(10);
+        const hashedPassword = bcryptJS.hashSync(password, salt);
+        const updatedUser = await Prisma.user.update({
+            where: {
+                id: decoded.id
+            },
+            data: {
+                password: hashedPassword,
+                resetToken: "",
+            }
+        });
+        return h.response({
+            message: "Successfully updated password",
+            resetToken: updatedUser
+        });
+    } catch (error: any) {
+        console.error(error);
+        return h.response({
+            message: "An error occurred while Deleting the Todo",
+            error: error.message || "Internal Server Error"
+        }).code(500);
+    }
+}
 
 
 const userDeleteHandler = async (req: any, h: any) => {
@@ -256,10 +359,12 @@ const fetchAllUsersHandler = async (req: any, h: any) => {
 
 
 export {
-    userLoginHandler,
+    userForgotPasswordHandler,
+    userResetPasswordHandler,
+    userResetTokenHandler,
+    fetchAllUsersHandler,
     userSignupHandler,
     userDeleteHandler,
-    fetchAllUsersHandler,
-    userForgotPasswordHandler,
-    tokenValidHandler
+    tokenValidHandler,
+    userLoginHandler,
 };
